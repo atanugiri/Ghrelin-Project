@@ -16,7 +16,10 @@ else
 end
 
 %% P2L1 combined boost and alcohol baseline
-[boost_alcohol_L1_id, ~, ~] = extract_combined_boost_alcohol_ids(conn, 'noPrint');
+% Combined Boost Alcohol L1
+[boost_L1_id, ~, ~] = extract_boost_ids(conn, 'noPrint');
+[~, alcohol_L1_id, ~, ~] = extract_alcohol_ids(conn, 'noPrint');
+boost_alcohol_L1_id = vertcat(boost_L1_id, alcohol_L1_id);
 boost_alcohol_L1_data = dataSummary(boost_alcohol_L1_id);
 boost_alcohol_L1_animals = unique(string(boost_alcohol_L1_data.subjectid));
 boost_alcohol_L1_animals = strjoin(boost_alcohol_L1_animals, "','");
@@ -54,7 +57,10 @@ end
 
 
 %% P2L1L3 combined boost and alcohol baseline
-[~, boost_alcohol_L1L3_id, ~] = extract_combined_boost_alcohol_ids(conn, 'noPrint');
+% Combined Boost Alcohol L1L3
+[~, boost_L1L3_id, ~] = extract_boost_ids(conn, 'noPrint');
+[~, ~, alcohol_L1L3_id, ~] = extract_alcohol_ids(conn, 'noPrint');
+boost_alcohol_L1L3_id = vertcat(boost_L1L3_id, alcohol_L1L3_id);
 boost_alcohol_L1L3_data = dataSummary(boost_alcohol_L1L3_id);
 boost_alcohol_L1L3_animals = unique(string(boost_alcohol_L1L3_data.subjectid));
 boost_alcohol_L1L3_animals = strjoin(boost_alcohol_L1L3_animals, "','");
