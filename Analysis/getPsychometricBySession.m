@@ -2,7 +2,7 @@
 % Date: 05/12/2025
 %
 % This function calculates the featureForEach and related information based
-% on each animal and and each session.
+% on each animal and each session.
 %
 function [featureForEach, avFeature, stdErr, animalName, dateList, trialCt] = getPsychometricBySession(dataTable, feature)
 

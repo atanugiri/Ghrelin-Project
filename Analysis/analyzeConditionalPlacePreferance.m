@@ -16,8 +16,7 @@ if nargin < 3
     animalList = {};
 end
 
-datasource = 'live_database';
-conn = database(datasource, 'postgres', '1234');
+conn = database('live_database', 'postgres', '1234');
 
 treatmentIDs = treatmentIDfun(treatmentGroup, conn);
 treatmentIDs_str = strjoin(arrayfun(@num2str, treatmentIDs, 'UniformOutput', false), ',');
