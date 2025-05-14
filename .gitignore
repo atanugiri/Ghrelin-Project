@@ -11,3 +11,4 @@ Literature/ search\
 Analysis/.DS_Store
 Analysis/Fig\ files/
 Analysis/Clusters/Fig\ files/
+*.csv
