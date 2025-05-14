@@ -47,7 +47,7 @@ mergedTable.trialname = str2double(mergedTable.trialname);
 if ~strcmpi(feature,'approachavoid')
     mergedTable.distance_until_limiting_time_stamp = str2double(mergedTable.distance_until_limiting_time_stamp);
 end
-if ~strcmpi(feature, 'distance_until_limiting_time_stamp')
+if ~strcmpi(feature, 'distance_until_limiting_time_stamp') && ~isa(mergedTable.(feature), 'double')
     mergedTable.(feature) = str2double(mergedTable.(feature));
 end
 

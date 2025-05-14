@@ -1,13 +1,12 @@
 % Author: Atanu Giri
-% Date: 04/12/2024
+% Date: 05/12/2025
 %
 % This function calculates the featureForEach and related information based
 % on each animal and and each session.
 %
-function [featureForEach, animalName, dateList, trialCt] = psychometricFunValues(dataTable, feature)
+function [featureForEach, avFeature, stdErr, animalName, dateList, trialCt] = getPsychometricBySession(dataTable, feature)
 
 animalList = unique(dataTable.subjectid);
-
 featureForEach = [];
 animalName = [];
 dateList = [];
@@ -21,10 +20,9 @@ for animal = 1:length(animalList)
     featureForEach = [featureForEach; zeros(length(sessionList), 4)];
     animalName = [animalName; repelem(animalList(animal), length(sessionList), 1)];
     dateList = [dateList; sessionList];
-    
+
     for session = 1:length(sessionList)
         sessionData = animalData(animalData.referencetime == sessionList(session), :);
-
         rowToUpdate = rowToUpdate + 1;
 
         for conc = 1:4
@@ -32,15 +30,21 @@ for animal = 1:length(animalList)
             dataFilter = sessionData.realFeederId == feederToFetch;
             featureArray = sessionData.(feature)(dataFilter, :);
             featureArray = featureArray(isfinite(featureArray));
-            featureForEach(rowToUpdate, conc) = sum(featureArray)/length(featureArray);
+            featureForEach(rowToUpdate, conc) = mean(featureArray);
             trialCt(rowToUpdate, conc) = length(featureArray);
-        end % end of conc 1
-    end % end of session 1
-end % end of animal 1
+        end
+    end
+end
 
-% Remove rows if there is any nan
-tf = arrayfun(@(x) any(isnan(featureForEach(x, :))), 1:size(featureForEach, 1));
-featureForEach(tf', :) = [];
-animalName(tf', :) = [];
-dateList(tf', :) = [];
-trialCt(tf', :) = [];
+% Remove any rows with NaNs
+invalidRows = any(isnan(featureForEach), 2);
+featureForEach(invalidRows, :) = [];
+animalName(invalidRows, :) = [];
+dateList(invalidRows, :) = [];
+trialCt(invalidRows, :) = [];
+
+% Calculate mean and SEM across sessions
+avFeature = mean(featureForEach, 1);
+stdErr = std(featureForEach, 0, 1) ./ sqrt(size(featureForEach, 1));
+
+end
