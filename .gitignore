@@ -4,6 +4,8 @@
 *.fig
 *.pdf
 *.xlsx
+*.csv
+*.ai
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store
@@ -11,4 +13,3 @@ Literature/ search\
 Analysis/.DS_Store
 Analysis/Fig\ files/
 Analysis/Clusters/Fig\ files/
-*.csv
