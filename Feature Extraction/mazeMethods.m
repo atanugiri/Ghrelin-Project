@@ -1,155 +1,102 @@
+function mazeMethods(mazeIndex, feederSize, zoneSize, feeder, highlightOffer, highlightCenter)
 % Author: Atanu Giri
-% Date: 11/17/2023
-
-function mazeMethods(mazeIndex,feederSize,zoneSize,feeder)
+% Date: 11/17/2023 (Modified: 05/16/2025)
 %
-% This method chooses the maze in which the trial is taking place. Then it
-% shades the feeder zones; highlight the offer and central zone in that maze
+% This method chooses the maze in which the trial is taking place.
+% It shades feeder zones and (optionally) highlights the offer and central zones.
 %
-% mazeIndex = 1; feederSize = 0.20; feeder = 1; zoneSize = 0.5;
+% Parameters:
+% mazeIndex     - Maze quadrant (1 to 4)
+% feederSize    - Size of feeder rectangles (default 0.25)
+% zoneSize      - Size of central zone (default [])
+% feeder        - Which feeder to highlight (1 to 4)
+% highlightOffer - (optional) whether to highlight the offer zone (default = true)
+% highlightCenter - (optional) whether to highlight the central zone (default = true)
 
+if nargin < 6
+    highlightCenter = true;
+end
+if nargin < 5
+    highlightOffer = true;
+end
 if nargin < 4
-    feeder = []; % Default value if not provided
+    feeder = [];
 end
-
 if nargin < 3
-    zoneSize = []; % Default value if not provided
+    zoneSize = [];
 end
-
 if nargin < 2
-    feederSize = 0.25; % Default value if not provided
+    feederSize = 0.25;
 end
 
-grayFace = [0.3 0.3 0.3]; yellowFace = [1 1 0 0.3];
-xWidth = (feederSize+0.05); yWidth = xWidth;
+grayFace = [0.3 0.3 0.3]; 
+yellowFace = [1 1 0 0.3];
+xWidth = (feederSize + 0.05); 
+yWidth = xWidth;
 
+% Rectangle positions based on maze
 switch mazeIndex
     case 1
-        % Maze2 a.k.a 1st quadrant
-        % rectangles are denoted according to feeder numbers in this maze
-        r1 = rectangle('Position',[(1-feederSize) -0.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r2 = rectangle('Position',[-0.05 -0.05 xWidth yWidth], ...
-            'EdgeColor','none', 'FaceColor',grayFace,'FaceAlpha',0.3);
-        r3 = rectangle('Position',[-0.05 (1-feederSize) xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r4 = rectangle('Position',[(1-feederSize) (1-feederSize) xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-
-        helperPlot;
-
+        r1 = rectangle('Position', [(1 - feederSize) -0.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r2 = rectangle('Position', [-0.05 -0.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r3 = rectangle('Position', [-0.05 (1 - feederSize) xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r4 = rectangle('Position', [(1 - feederSize) (1 - feederSize) xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
         xMid = 0.5; yMid = 0.5;
-        try
-            % Shade central zone
-            x1 = xMid - zoneSize/2; y1 = yMid - zoneSize/2;
-            rectangle('Position',[x1 y1 zoneSize zoneSize],'EdgeColor','none', ...
-                'FaceColor',[1 0 0 0.2]);
-
-        catch
-            sprintf("Error");
-        end
 
     case 2
-        % Maze1 a.k.a 2nd quadrant
-        % rectangles are denoted according to feeder numbers in this maze
-        r1 = rectangle('Position',[-1.05 (1-feederSize) xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r2 = rectangle('Position',[-1.05 -0.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r3 = rectangle('Position',[-feederSize -0.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r4 = rectangle('Position',[-feederSize (1-feederSize) xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-
-        helperPlot;
-
+        r1 = rectangle('Position', [-1.05 (1 - feederSize) xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r2 = rectangle('Position', [-1.05 -0.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r3 = rectangle('Position', [-feederSize -0.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r4 = rectangle('Position', [-feederSize (1 - feederSize) xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
         xMid = -0.5; yMid = 0.5;
-        try
-            % Shade central zone
-            x1 = xMid - zoneSize/2; y1 = yMid - zoneSize/2;
-            rectangle('Position',[x1 y1 zoneSize zoneSize],'EdgeColor','none', ...
-                'FaceColor',[1 0 0 0.2]);
-
-        catch
-            sprintf("Error");
-        end
 
     case 3
-        % Maze3 a.k.a 3rd quadrant
-        % rectangles are denoted according to feeder numbers in this maze
-        r1 = rectangle('Position',[-feederSize -1.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r2 = rectangle('Position',[-1.05 -1.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r3 = rectangle('Position',[-1.05 -feederSize xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r4 = rectangle('Position',[-feederSize -feederSize xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-
-        helperPlot;
-
+        r1 = rectangle('Position', [-feederSize -1.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r2 = rectangle('Position', [-1.05 -1.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r3 = rectangle('Position', [-1.05 -feederSize xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r4 = rectangle('Position', [-feederSize -feederSize xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
         xMid = -0.5; yMid = -0.5;
-        try
-            % Shade central zone
-            x1 = xMid - zoneSize/2; y1 = yMid - zoneSize/2;
-            rectangle('Position',[x1 y1 zoneSize zoneSize],'EdgeColor','none', ...
-                'FaceColor',[1 0 0 0.2]);
-
-        catch
-            sprintf("Error");
-        end
 
     case 4
-        % Maze4 a.k.a 4th quadrant
-        % rectangles are denoted according to feeder numbers in this maze
-        r1 = rectangle('Position',[-0.05 -feederSize xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r2 = rectangle('Position',[(1-feederSize) -feederSize xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r3 = rectangle('Position',[(1-feederSize) -1.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-        r4 = rectangle('Position',[-0.05 -1.05 xWidth yWidth], ...
-            'EdgeColor','none','FaceColor',grayFace,'FaceAlpha',0.3);
-
-        helperPlot;
-
+        r1 = rectangle('Position', [-0.05 -feederSize xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r2 = rectangle('Position', [(1 - feederSize) -feederSize xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r3 = rectangle('Position', [(1 - feederSize) -1.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
+        r4 = rectangle('Position', [-0.05 -1.05 xWidth yWidth], 'EdgeColor', 'none', 'FaceColor', grayFace, 'FaceAlpha', 0.3);
         xMid = 0.5; yMid = -0.5;
-        
-        try
-            % Shade central zone
-            x1 = xMid - zoneSize/2; y1 = yMid - zoneSize/2;
-            rectangle('Position',[x1 y1 zoneSize zoneSize],'EdgeColor','none', ...
-                'FaceColor',[1 0 0 0.2]);
-
-        catch
-            sprintf("Error");
-        end
 
     otherwise
-        warning('Unexpected maze number.')
+        warning('Unexpected maze number.');
+        return;
 end
 
-%% Description of helperPlot
+helperPlot;  % plots text + highlights offer if enabled
+
+if highlightCenter && ~isempty(zoneSize)
+    x1 = xMid - zoneSize/2; 
+    y1 = yMid - zoneSize/2;
+    rectangle('Position', [x1 y1 zoneSize zoneSize], 'EdgeColor', 'none', ...
+        'FaceColor', [1 0 0 0.2]);
+end
+
+    %% Nested helper function
     function helperPlot
-        r = [r1,r2,r3,r4];
-
-        % Add text to rectangles
+        r = [r1, r2, r3, r4];
         textPositions = [
-            r1.Position(1)+xWidth/2,  r1.Position(2)+yWidth/2;
-            r2.Position(1)+xWidth/2,  r2.Position(2)+yWidth/2;
-            r3.Position(1)+xWidth/2,  r3.Position(2)+yWidth/2;
-            r4.Position(1)+xWidth/2,  r4.Position(2)+yWidth/2;
-            ];
-
+            r1.Position(1)+xWidth/2, r1.Position(2)+yWidth/2;
+            r2.Position(1)+xWidth/2, r2.Position(2)+yWidth/2;
+            r3.Position(1)+xWidth/2, r3.Position(2)+yWidth/2;
+            r4.Position(1)+xWidth/2, r4.Position(2)+yWidth/2;
+        ];
         textLabels = {'9%', '5%', '2%', '0.5%'};
 
         for i = 1:4
-            text(textPositions(i, 1), textPositions(i, 2), textLabels{i}, ...
+            text(textPositions(i,1), textPositions(i,2), textLabels{i}, ...
                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
                 'Color', 'r', 'FontWeight', 'bold');
         end
 
-        % Shade reward
-        set(r(feeder),'FaceColor', yellowFace);
+        if highlightOffer && ~isempty(feeder)
+            set(r(feeder), 'FaceColor', yellowFace);
+        end
     end
 end
