@@ -25,48 +25,42 @@ if isempty(conn)
     conn = database(datasource,'postgres','1234');
 end
 
-% Query trajectory and live table data
-query = sprintf("SELECT id, distance_until_limiting_time_stamp, norm_t, norm_x, norm_y " + ...
-    "FROM ghrelin_featuretable WHERE id = %d", id);
+% Combined query from both tables
+query = sprintf( ...
+    "SELECT g.id, g.distance_until_limiting_time_stamp, norm_t, norm_x, norm_y, " + ...
+    "l.playstarttrialtone FROM ghrelin_featuretable g " + ...
+    "JOIN live_table l ON g.id = l.id " + ...
+    "WHERE g.id = %d", ...
+    id);
 subject_data = fetch(conn, query);
 
-liveTableQuery = sprintf("SELECT id, playstarttrialtone FROM live_table WHERE id = %d", id);
-liveTableData = fetch(conn, liveTableQuery);
-
-subject_data = innerjoin(liveTableData, subject_data, 'Keys', 'id');
-
 try
-    subject_data.playstarttrialtone = str2double(subject_data.playstarttrialtone);
-    if isnan(subject_data.playstarttrialtone)
-        subject_data.playstarttrialtone = 2;
-    end
-
+    % Parse playstarttrialtone
     subject_data.distance_until_limiting_time_stamp = str2double(subject_data.distance_until_limiting_time_stamp);
-
-    % Convert PGArray strings to numeric arrays
-    for column = size(subject_data, 2) - 2:size(subject_data, 2)
-        stringAllRows = string(subject_data.(column));
-        regAllRows = regexprep(stringAllRows, '{|}', '');
-        splitAllRows = split(regAllRows, ',');
-        doubleData = str2double(splitAllRows);
-        subject_data.(column){1} = doubleData;
+    playTone = str2double(subject_data.playstarttrialtone);
+    if isnan(playTone)
+        playTone = 2;
     end
 
-    X = subject_data.norm_x{1};
-    Y = subject_data.norm_y{1};
-    t = subject_data.norm_t{1};
+    % Parse norm_t, norm_x, norm_y as numeric arrays
+    for colName = ["norm_t", "norm_x", "norm_y"]
+        rawStr = string(subject_data.(colName));
+        cleanedStr = regexprep(rawStr, '[{}]', '');
+        splitStr = split(cleanedStr, ',');
+        subject_data.(colName){1} = str2double(splitStr);
+    end
 
-    % Remove time stamps before tone
-    startingCoordinatetimes = subject_data.playstarttrialtone;
-    X = X(t >= startingCoordinatetimes);
-    Y = Y(t >= startingCoordinatetimes);
-    t = t(t >= startingCoordinatetimes);
+    limitingTimeIndex = 20;
 
-    % Limit to 20s
-    limitingTimeIndex = find(t <= 20);
-    X = X(1:length(limitingTimeIndex));
-    Y = Y(1:length(limitingTimeIndex));
-    t = t(1:length(limitingTimeIndex));
+    % Create coordinate table
+    data = table(subject_data.norm_t{1}, subject_data.norm_x{1}, ...
+        subject_data.norm_y{1}, 'VariableNames', {'t', 'X', 'Y'});
+
+    % Present cost (PC) range: playTone–20 sec
+    pcFilter = data.t >= playTone & data.t <= limitingTimeIndex;
+    t = data.t(pcFilter);
+    X = data.X(pcFilter);
+    Y = data.Y(pcFilter);
 
     % Define methods
     windowSize = [5,5,10,10,20,30];
