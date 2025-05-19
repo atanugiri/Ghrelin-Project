@@ -1,4 +1,4 @@
-function mazeMethods(mazeIndex, feederSize, zoneSize, feeder, highlightOffer, highlightCenter)
+function mazeMethods(mazeIndex, feeder, feederSize, zoneSize, highlightOffer, highlightCenter)
 % Author: Atanu Giri
 % Date: 11/17/2023 (Modified: 05/16/2025)
 %
@@ -8,7 +8,7 @@ function mazeMethods(mazeIndex, feederSize, zoneSize, feeder, highlightOffer, hi
 % Parameters:
 % mazeIndex     - Maze quadrant (1 to 4)
 % feederSize    - Size of feeder rectangles (default 0.25)
-% zoneSize      - Size of central zone (default [])
+% zoneSize      - Size of central zone (default 0.5)
 % feeder        - Which feeder to highlight (1 to 4)
 % highlightOffer - (optional) whether to highlight the offer zone (default = true)
 % highlightCenter - (optional) whether to highlight the central zone (default = true)
@@ -19,19 +19,19 @@ end
 if nargin < 5
     highlightOffer = true;
 end
-if nargin < 4
-    feeder = [];
+if nargin < 4 || isempty(zoneSize)
+    zoneSize = 0.5;
 end
-if nargin < 3
-    zoneSize = [];
-end
-if nargin < 2
+if nargin < 3 || isempty(feederSize)
     feederSize = 0.25;
 end
+if nargin < 2
+    feeder = [];
+end
 
-grayFace = [0.3 0.3 0.3]; 
+grayFace = [0.3 0.3 0.3];
 yellowFace = [1 1 0 0.3];
-xWidth = (feederSize + 0.05); 
+xWidth = (feederSize + 0.05);
 yWidth = xWidth;
 
 % Rectangle positions based on maze
@@ -71,7 +71,7 @@ end
 
 helperPlot;  % plots text + highlights offer if enabled
 
-if highlightCenter && ~isempty(zoneSize)
+if highlightCenter
     x1 = xMid - zoneSize/2; 
     y1 = yMid - zoneSize/2;
     rectangle('Position', [x1 y1 zoneSize zoneSize], 'EdgeColor', 'none', ...
