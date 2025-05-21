@@ -53,7 +53,7 @@ try
     Y = data.Y;
 
     % Present cost (PC) range: 2–15 sec
-    pcFilter = data.t >= 2 & data.t <= 15;
+    pcFilter = data.t >= playTone & data.t <= 20;
     x = data.X(pcFilter);
     y = data.Y(pcFilter);
 
@@ -90,6 +90,8 @@ try
         'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'g', 'HandleVisibility', 'off');
     plot(ax, x(end), y(end), 'o', 'MarkerSize', 8, ...
         'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'r', 'HandleVisibility', 'off');
+    axis(ax, 'tight');
+    axis(ax, 'equal');
 
     % Label axes
     xlabel(ax, 'x (Normalized)', 'Interpreter', 'latex', 'FontSize', 14);
