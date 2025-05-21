@@ -19,7 +19,7 @@
 %
 % Example usage:
 %   [T1, T2] = masterPsychometricBarPlot('time_in_center_50', [], ...
-%       'NCCB_bar', 'trial', [1 2 4], {'P2L1 Saline'}, {'P2L1 Ghrelin'});
+%       'NCCB_bar', 'trial', [1 2 4], 0.75, {'P2L1 Saline'}, {'P2L1 Ghrelin'});
 %
 % Notes:
 %   - The function saves the figure as a .fig file in the 'Fig files' directory.
