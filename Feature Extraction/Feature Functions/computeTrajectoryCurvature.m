@@ -1,18 +1,21 @@
-function curvature = computeTrajectoryCurvature(id, conn)
+function curvature = computeTrajectoryCurvature(id, conn, plotFlag)
 % Author: Atanu Giri
 % Date: 05/19/2025
 %
 % computeTrajectoryCurvature - Computes mean curvature of a smoothed trajectory
 % Input:
-%   id   - trial ID
-%   conn - database connection object (optional)
+%   id       - trial ID
+%   conn     - database connection object (optional)
+%   plotFlag - (optional) true to plot the smoothed trajectory and curvature
 % Output:
 %   curvature - mean curvature over PC range (smoothed)
 
     % Set up DB connection if not passed in
     if nargin < 2 || isempty(conn)
-        datasource = 'live_database';
-        conn = database(datasource, 'postgres', '1234');
+        conn = database('live_database', 'postgres', '1234');
+    end
+    if nargin < 3
+        plotFlag = false;
     end
 
     curvature = NaN;  % Default output in case of error
@@ -64,9 +67,32 @@ function curvature = computeTrajectoryCurvature(id, conn)
 
         % Curvature formula
         curvatureVals = abs(dx .* ddy - dy .* ddx) ./ (dx.^2 + dy.^2).^(3/2);
-        curvatureVals(~isfinite(curvatureVals)) = 0;  % handle NaNs/Infs
+        curvatureVals(~isfinite(curvatureVals)) = 0;
 
+        % Final output: mean curvature
         curvature = mean(curvatureVals);
+
+        % Optional plot
+        if plotFlag
+            figure;
+            % Use curvature to color the trajectory line
+            cmap = jet(256);
+            normCurv = rescale(curvatureVals);  % Normalize curvature to [0, 1]
+            colorIdx = round(normCurv * 255) + 1;
+
+            hold on;
+            for i = 1:length(x)-1
+                c = cmap(colorIdx(i), :);
+                plot(x(i:i+1), y(i:i+1), '-', 'Color', c, 'LineWidth', 2);
+            end
+            colormap(jet);
+            cb = colorbar;
+            cb.Label.String = 'Curvature';
+            xlabel('X (normalized)');
+            ylabel('Y (normalized)');
+            title(sprintf('Trajectory Colored by Curvature (ID = %d)', id));
+            axis equal;
+        end
 
     catch ME
         fprintf("Error computing curvature for id = %d: %s\n", id, ME.message);

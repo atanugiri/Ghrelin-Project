@@ -100,6 +100,7 @@ try
         xlabel('Time (s)', 'FontSize', 25, 'Interpreter', 'latex');
         ylabel('Acceleration', 'FontSize', 25, 'Interpreter', 'latex');
         hold off;
+        axis tight; axis equal;
     end
 
 catch
