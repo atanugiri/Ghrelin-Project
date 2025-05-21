@@ -11,7 +11,7 @@ function writeToFeaturetableEntropy(idList, conn)
 
     for i = 1:length(idList)
         id = idList(i);
-        entropy = trajectoryEntropyFun(id, conn, [], 25);
+        entropy = trajectoryEntropyFun(id, conn, [], 15);
 
         if ~isnan(entropy)
             try
