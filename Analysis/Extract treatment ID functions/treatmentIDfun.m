@@ -13,7 +13,7 @@ end
 % Print all health groups
 fprintf("Health groups:\n");
 fprintf("P2L1 Baseline, P2L1L3 Baseline, P2L1 Food deprivation, Initial task, Late task, \n" + ...
-    "Oxy, Incubation, \n" + ...
+    "P2L1 Prefeeding, P2L1L3 Prefeeding, Oxy, Incubation, \n" + ...
     "P2L1 Saline, P2L1 Ghrelin, P2L1L3 Saline, P2L1L3 Ghrelin, \n" + ...
     "Sal toyrat, Ghr toyrat, Sal toystick, Ghr toystick, Sal skewer, Ghr skewer, \n" + ...
     "P2L1 Alcohol bl, P2L1L3 Alcohol bl, P2L1 Boost bl, P2L1L3 Boost bl\n" + ...
@@ -34,15 +34,19 @@ fprintf("P2L1 Baseline, P2L1L3 Baseline, P2L1 Food deprivation, Initial task, La
 
 %% Output from extract_treatment_ids function
 if strcmpi(treatment, "P2L1 Baseline")
-    [id, ~, ~, ~, ~] = extract_treatment_ids(conn);
+    [id, ~, ~, ~, ~, ~, ~] = extract_treatment_ids(conn);
 elseif strcmpi(treatment, "P2L1L3 Baseline")
-    [~, id, ~, ~, ~] = extract_treatment_ids(conn);
+    [~, id, ~, ~, ~, ~, ~] = extract_treatment_ids(conn);
 elseif strcmpi(treatment, "P2L1 Food deprivation")
-    [~, ~, id, ~, ~] = extract_treatment_ids(conn);
+    [~, ~, id, ~, ~, ~, ~] = extract_treatment_ids(conn);
 elseif strcmpi(treatment, "Initial task")
-    [~, ~, ~, id, ~] = extract_treatment_ids(conn);
+    [~, ~, ~, id, ~, ~, ~] = extract_treatment_ids(conn);
 elseif strcmpi(treatment, "Late task")
-    [~, ~, ~, ~, id] = extract_treatment_ids(conn);
+    [~, ~, ~, ~, id, ~, ~] = extract_treatment_ids(conn);
+elseif strcmpi(treatment, "P2L1 Prefeeding")
+    [~, ~, ~, ~, ~, id, ~] = extract_treatment_ids(conn);    
+elseif strcmpi(treatment, "P2L1L3 Prefeeding")
+    [~, ~, ~, ~, ~, ~, id] = extract_treatment_ids(conn);
 
     %% Output from getOxyIncubIds function
 elseif strcmpi(treatment, "Oxy")

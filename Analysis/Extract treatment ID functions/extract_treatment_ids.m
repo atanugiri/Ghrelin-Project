@@ -1,10 +1,11 @@
 % Author: Atanu Giri
 % Date: 01/02/2024
 
-function [BL_P2L1_id, BL_P2L1L3_id, FD_P2L1_id, initial_task_id, late_task_id] ...
+function [BL_P2L1_id, BL_P2L1L3_id, FD_P2L1_id, initial_task_id, late_task_id, ...
+    PF_P2L1_id, PF_P2L1L3_id] ...
 = extract_treatment_ids(varargin)
 % This function extracts Baseline, Food deprivation, Initial task, and Late
-% task ids.
+% task Pre-feeding ids
 
 if numel(varargin) < 1
     datasource = 'live_database';
@@ -92,4 +93,19 @@ LT_dates = dataInRange.referencetime >= LT_start_date & ...
 LT_data = dataInRange(LT_genotype_filter & IT_health_filter & ...
     P2A_task_filter & LT_dates, :);
 late_task_id = LT_data.id;
+
+% Pre_feeding_P2L1_id
+PF_genotype_filter = strcmpi(strrep(dataInRange.genotype, ' ',''), ...
+    strrep("CRL: Long Evans",' ',''));
+PF_health_filter = strcmpi(strrep(dataInRange.health, ' ',''), "Pre-Feeding");
+PF_task_filter = strcmpi(strrep(dataInRange.tasktypedone, ' ',''), "P2L1");
+PF_P2L1_data = dataInRange(PF_genotype_filter & PF_health_filter & ...
+    PF_task_filter, :);
+PF_P2L1_id = PF_P2L1_data.id;
+
+% Pre_feeding_P2L1L3_id
+PF_task_filter = strcmpi(strrep(dataInRange.tasktypedone, ' ',''), "P2L1L3");
+PF_P2L1L3_data = dataInRange(PF_genotype_filter & PF_health_filter & ...
+    PF_task_filter, :);
+PF_P2L1L3_id = PF_P2L1L3_data.id;
 end
