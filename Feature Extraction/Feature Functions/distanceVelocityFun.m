@@ -8,52 +8,46 @@ else
     conn =  varargin{1};
 end
 
-% write query
-query = sprintf("SELECT id, norm_t, " + ...
-    "norm_x, norm_y FROM ghrelin_featuretable WHERE id = %d", id);
-subject_data = fetch(conn,query);
+% Fetch data with JOIN
+query = sprintf( ...
+    "SELECT g.id, g.norm_t, g.norm_x, g.norm_y, l.playstarttrialtone " + ...
+    "FROM ghrelin_featuretable g " + ...
+    "JOIN live_table l ON g.id = l.id " + ...
+    "WHERE g.id = %d", ...
+    id);
 
-liveTableQuery = sprintf("SELECT id, playstarttrialtone " + ...
-    "FROM live_table WHERE id = %d", id);
-liveTableData = fetch(conn, liveTableQuery);
-
-subject_data = innerjoin(liveTableData, subject_data, 'Keys', 'id');
+subject_data = fetch(conn, query);
 
 try
-    subject_data.playstarttrialtone = str2double(subject_data.playstarttrialtone);
-    if isnan(subject_data.playstarttrialtone)
-        subject_data.playstarttrialtone = 2;
+    toneTime = str2double(subject_data.playstarttrialtone);
+    if isnan(toneTime)
+        toneTime = 2;
     end
 
-    % Accessing PGArray data as double
-    for column = size(subject_data,2) - 2:size(subject_data,2)
-        stringAllRows = string(subject_data.(column));
-        regAllRows = regexprep(stringAllRows,'{|}','');
-        splitAllRows = split(regAllRows,',');
-        doubleData = str2double(splitAllRows);
-        subject_data.(column){1} = doubleData;
+    % Convert PGArrays to double arrays
+    for varName = ["norm_t", "norm_x", "norm_y"]
+        s = string(subject_data.(varName));
+        s = regexprep(s, '[{}]', '');
+        subject_data.(varName){1} = str2double(split(s, ','));
     end
 
+    t = subject_data.norm_t{1};
     X = subject_data.norm_x{1};
     Y = subject_data.norm_y{1};
-    t = subject_data.norm_t{1};
 
-    % Remove time stamps before tone
-    startingCoordinatetimes = subject_data.playstarttrialtone;
-    X = X(t >= startingCoordinatetimes);
-    Y = Y(t >= startingCoordinatetimes);
-    t = t(t >= startingCoordinatetimes);
-
-    limitingTimeIndex = find(t == 20);
+    valid = t >= toneTime & t <= 20;
+    X = X(valid);
+    Y = Y(valid);
+    t = t(valid);
 
     distanceUntilLimitingTimeStamp = 0;
-    for i = 1:length(X(1:limitingTimeIndex))-1
+    for i = 1:length(X)-1
         distanceUntilLimitingTimeStamp = distanceUntilLimitingTimeStamp + ...
             sqrt((X(i+1)-X(i))^2 + (Y(i+1)-Y(i))^2);
     end
 
     velocityUntilLimitingTimeStamp = distanceUntilLimitingTimeStamp/ ...
-        (t(limitingTimeIndex) - t(1));
+        (t(end) - t(1));
 
 catch
     sprintf("An error occured for id = %d\n", id);
