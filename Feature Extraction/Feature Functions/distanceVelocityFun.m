@@ -1,6 +1,21 @@
+% Author: Atanu Giri
+% Date: 05/23/2025
+% distanceVelocityFun - Computes total distance and average velocity within a time window
+% 
+% Syntax:
+%   [distance, velocity] = distanceVelocityFun(id)
+%   [distance, velocity] = distanceVelocityFun(id, conn)
+%
+% Inputs:
+%   id   - Trial ID to extract trajectory data
+%   conn - (Optional) Database connection object
+%
+% Outputs:
+%   distance - Total trajectory distance from tone to 20s
+%   velocity - Average velocity in the same interval
+
 function [distanceUntilLimitingTimeStamp,velocityUntilLimitingTimeStamp] = distanceVelocityFun(id, varargin)
 
-% id = 265302;
 if numel(varargin) < 1
     datasource = 'live_database';
     conn = database(datasource,'postgres','1234');
@@ -40,16 +55,24 @@ try
     Y = Y(valid);
     t = t(valid);
 
-    distanceUntilLimitingTimeStamp = 0;
-    for i = 1:length(X)-1
-        distanceUntilLimitingTimeStamp = distanceUntilLimitingTimeStamp + ...
-            sqrt((X(i+1)-X(i))^2 + (Y(i+1)-Y(i))^2);
+    % Edge case checks
+    if numel(t) < 2
+        distanceUntilLimitingTimeStamp = NaN;
+        velocityUntilLimitingTimeStamp = NaN;
+        warning("ID %d has insufficient time points after tone", id);
+        return;
     end
 
+    % Vectorized distance calculation
+    dx = diff(X);
+    dy = diff(Y);
+    distanceUntilLimitingTimeStamp = sum(hypot(dx, dy));
     velocityUntilLimitingTimeStamp = distanceUntilLimitingTimeStamp/ ...
         (t(end) - t(1));
 
-catch
-    sprintf("An error occured for id = %d\n", id);
+catch ME
+    warning("Error processing ID %d: %s", id, ME.message);
+    distanceUntilLimitingTimeStamp = NaN;
+    velocityUntilLimitingTimeStamp = NaN;
 end
 end
