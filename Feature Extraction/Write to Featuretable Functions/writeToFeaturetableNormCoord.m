@@ -9,7 +9,7 @@ parfor index = 1:length(idList)
 
         [normT, normX, normY] = extractNormalizedCoordinate(id, connLocal);
 
-        normT = normT(:)'; normX = normX(:)'; normY = normY(:)';  % Ensure row vectors
+        normT = normT(:); normX = normX(:); normY = normY(:);
 
         norm_t_string = sprintf('ARRAY[%s]', strjoin(cellstr(num2str(normT, '%.6f')), ','));
         norm_x_string = sprintf('ARRAY[%s]', strjoin(cellstr(num2str(normX, '%.6f')), ','));
@@ -18,7 +18,7 @@ parfor index = 1:length(idList)
         updateQuery = sprintf("UPDATE ghrelin_featuretable SET norm_t=%s, norm_x=%s, norm_y=%s " + ...
             "WHERE id=%d", norm_t_string, norm_x_string, norm_y_string, id);
 
-        exec(conn, updateQuery);
+        exec(connLocal, updateQuery);
         close(connLocal);
 
         fprintf("Updated ID %d with %d points\n", id, numel(normT));
