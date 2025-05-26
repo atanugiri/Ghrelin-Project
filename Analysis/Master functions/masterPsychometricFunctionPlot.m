@@ -6,13 +6,15 @@
 %
 % Syntax:
 %   featureData = masterPsychometricFunctionPlot(feature)
-%   [T1, T2, ...] = masterPsychometricFunctionPlot(feature, animalList, figname, semMethod, group1, group2, ...)
+%   [T1, T2, ...] = masterPsychometricFunctionPlot(feature, animalList, figname, semMethod, ... 
+%                   distanceThreshold, group1, group2, ...)
 %
 % Inputs:
-%   feature     - (char/string) Name of the feature column to analyze (e.g., 'approach_rate')
+%   feature     - (char/string) Name of the feature column to analyze (e.g., 'approachavoid')
 %   animalList  - (optional, numeric/cell) List of subject IDs to include. Default: all animals
 %   figname     - (optional, char/string) Name used when saving the figure. Default: 'Psych plot_psych'
 %   semMethod   - (optional, char/string) 'session' (default) or 'trial'; determines SEM computation method
+%   distanceThreshold   - (optional, numeric) Filters distance more than threshold
 %   group1, group2, ... - One or more treatment group(s); each can be a string or a cell array of group names
 %
 % Outputs:
@@ -28,7 +30,7 @@
 %   - Saves the figure as .fig to 'Fig files' directory in the script's folder.
 %
 % Example:
-%   [T1, T2] = masterPsychometricFunctionPlot('approach_rate', [], [], 'trial', {'P2L1 Saline'}, {'P2L1 Ghrelin'});
+%   [T1, T2] = masterPsychometricFunctionPlot('approach_rate', [], [], 'trial', [], {'P2L1 Saline'}, {'P2L1 Ghrelin'});
 %
 % Author: Atanu Giri
 % Date: 05/12/2025
