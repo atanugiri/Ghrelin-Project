@@ -65,7 +65,7 @@ function mergedTable = fetchHealthDataTable(feature, idList, varargin)
 
     % Convert numeric columns
     if ~isApproachAvoid
-        mergedTable.distance_until_limiting_time_stamp = str2double(mergedTable.distance_until_limiting_time_stamp);
+        % mergedTable.distance_until_limiting_time_stamp = str2double(mergedTable.distance_until_limiting_time_stamp);
     end
     if ~ismember(feature, {'approachavoid', 'distance_until_limiting_time_stamp'}) && ...
        ~isa(mergedTable.(feature), 'double')
