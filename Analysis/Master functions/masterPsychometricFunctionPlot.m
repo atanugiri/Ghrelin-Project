@@ -14,7 +14,7 @@
 %   animalList  - (optional, numeric/cell) List of subject IDs to include. Default: all animals
 %   figname     - (optional, char/string) Name used when saving the figure. Default: 'Psych plot_psych'
 %   semMethod   - (optional, char/string) 'session' (default) or 'trial'; determines SEM computation method
-%   distanceThreshold   - (optional, numeric) Filters distance more than threshold
+%   distanceRange       - [min, max] range for distance filtering (optional)
 %   group1, group2, ... - One or more treatment group(s); each can be a string or a cell array of group names
 %
 % Outputs:
@@ -36,7 +36,7 @@
 % Date: 05/12/2025
 %
 function varargout = masterPsychometricFunctionPlot(feature, animalList, ...
-    figname, semMethod, distanceThreshold, varargin)
+    figname, semMethod, distanceRange, varargin)
 
 % Default for animalList
 if nargin < 2 || isempty(animalList)
@@ -54,9 +54,9 @@ if nargin < 4 || isempty(semMethod)
     semMethod = 'session';
 end
 
-% Default for distanceThreshold
-if nargin < 5 || isempty(distanceThreshold)
-    distanceThreshold = -Inf;
+% Default for distanceRange
+if nargin < 5 || isempty(distanceRange)
+    distanceRange = [-Inf, Inf];
 end
 
 treatmentGroups = varargin;
@@ -95,7 +95,7 @@ parfor i = 1:numel(treatment_data)
     conn = database(datasource,'postgres','1234');
 
     treatment_data{i} = fetchHealthDataTable(feature, treatmentIDs{i}, ...
-        conn, distanceThreshold);
+        conn, distanceRange);
     flatGroups = treatmentGroups{i};
     if iscell(flatGroups)
         flatGroups = string(flatGroups);

@@ -12,6 +12,7 @@
 %   - figname:            (Optional) Name for the saved figure (without extension)
 %   - semMethod:          Method for calculating standard error ('session' or 'trial')
 %   - concentrationSubset:(Optional) Indices of concentrations to include (e.g., [1 2] for 0.5% and 2%)
+%   - distanceRange       [min, max] range for distance filtering (optional)
 %   - varargin:           One or more treatment group(s), each as a string or cell array of strings
 %
 % Outputs:
@@ -19,7 +20,7 @@
 %
 % Example usage:
 %   [T1, T2] = masterPsychometricBarPlot('time_in_center_50', [], ...
-%       'NCCB_bar', 'trial', [1 2 4], 0.75, {'P2L1 Saline'}, {'P2L1 Ghrelin'});
+%       'NCCB_bar', 'trial', [1 2 4], [0.75 Inf], {'P2L1 Saline'}, {'P2L1 Ghrelin'});
 %
 % Notes:
 %   - The function saves the figure as a .fig file in the 'Fig files' directory.
@@ -33,7 +34,7 @@
 % Date: 05/14/2025
 %
 function varargout = masterPsychometricBarPlot(feature, animalList, ...
-    figname, semMethod, concentrationSubset, distanceThreshold, varargin)
+    figname, semMethod, concentrationSubset, distanceRange, varargin)
 
 % Set defaults
 if nargin < 2 || isempty(animalList)
@@ -50,13 +51,14 @@ end
 if nargin < 5 || isempty(concentrationSubset)
     concentrationSubset = 1:4;
 end
-if nargin < 6 || isempty(distanceThreshold)
-    distanceThreshold = -Inf;
+if nargin < 6 || isempty(distanceRange)
+    distanceRange = [-Inf, Inf];
 end
+
 
 % Call master function and get all outputs
 featureForEach = masterPsychometricFunctionPlot( ...
-    feature, animalList, figname, semMethod, distanceThreshold, varargin{:});
+    feature, animalList, figname, semMethod, distanceRange, varargin{:});
 
 % Now compute group averages and SEM across selected concentrations
 numGroups = numel(featureForEach);
