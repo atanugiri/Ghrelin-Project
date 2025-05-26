@@ -13,7 +13,13 @@ else
 end
 
 % Fetch alcohol animals
-[boost_alcohol_L1_id, boost_alcohol_L1L3_id, ~] = extract_combined_boost_alcohol_ids(conn, 'noPrint');
+boost_L1_id = treatmentIDfun('P2L1 Boost');
+alcohol_L1_id = treatmentIDfun('P2L1 Alcohol');
+boost_alcohol_L1_id = [boost_L1_id; alcohol_L1_id];
+
+boost_L1L3_id = treatmentIDfun('P2L1L3 Boost');
+alcohol_L1L3_id = treatmentIDfun('P2L1L3 Alcohol');
+boost_alcohol_L1L3_id = [boost_L1L3_id; alcohol_L1L3_id];
 
 % P2L1 Alcohol animals
 boost_alcohol_L1_data = dataSummary(boost_alcohol_L1_id);
