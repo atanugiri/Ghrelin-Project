@@ -1,5 +1,5 @@
 function [feeder1_edge, feeder2_edge, feeder3_edge, feeder4_edge] = feederEdgesByQuadrant(quadrant)
-% feederEdgesByQuadrant  Return feeder zone edges for a given maze quadrant.
+% feederEdgesByQuadrant: Return feeder zone edges for a given maze quadrant.
 %
 %   [f1, f2, f3, f4] = feederEdgesByQuadrant(quadrant) returns the x- and y-coordinate
 %   boundaries (edges) of the four feeder zones for a maze, based on the quadrant index.

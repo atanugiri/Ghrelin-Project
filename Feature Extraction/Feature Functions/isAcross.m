@@ -1,5 +1,5 @@
 function out = isAcross(id, conn, plotFlag)
-% isAcross  Determine if animal started in across-feeder zone during trial tone.
+% isAcross: Determine if animal started in across-feeder zone during trial tone.
 %
 %   out = isAcross(id) returns 1 if the initial position of the animal during
 %   the trial lies within the zone of the feeder directly across from the 
