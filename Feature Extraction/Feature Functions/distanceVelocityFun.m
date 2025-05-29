@@ -14,7 +14,7 @@
 %   distance - Total trajectory distance from tone to 20s
 %   velocity - Average velocity in the same interval
 
-function [distanceUntilLimitingTimeStamp,velocityUntilLimitingTimeStamp] = distanceVelocityFun(id, varargin)
+function [distance,velocity] = distanceVelocityFun(id, varargin)
 
 if numel(varargin) < 1
     datasource = 'live_database';
@@ -57,8 +57,8 @@ try
 
     % Edge case checks
     if numel(t) < 2
-        distanceUntilLimitingTimeStamp = NaN;
-        velocityUntilLimitingTimeStamp = NaN;
+        distance = NaN;
+        velocity = NaN;
         warning("ID %d has insufficient time points after tone", id);
         return;
     end
@@ -66,13 +66,13 @@ try
     % Vectorized distance calculation
     dx = diff(X);
     dy = diff(Y);
-    distanceUntilLimitingTimeStamp = sum(hypot(dx, dy));
-    velocityUntilLimitingTimeStamp = distanceUntilLimitingTimeStamp/ ...
+    distance = sum(hypot(dx, dy));
+    velocity = distance/ ...
         (t(end) - t(1));
 
 catch ME
     warning("Error processing ID %d: %s", id, ME.message);
-    distanceUntilLimitingTimeStamp = NaN;
-    velocityUntilLimitingTimeStamp = NaN;
+    distance = NaN;
+    velocity = NaN;
 end
 end

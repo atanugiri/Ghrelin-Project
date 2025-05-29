@@ -1,4 +1,4 @@
-function [accOutlierMoveMedian, jerkOutlierMoveMedian] = accelerationAndJerkOulierFun(id, varargin)
+function [accOutlier, jerkOutlier] = accelerationAndJerkOulierFun(id, varargin)
 % Author: Atanu Giri
 % Date: 12/20/2023 (Modified: 05/19/2025)
 %
@@ -34,7 +34,6 @@ subject_data = fetch(conn, query);
 
 try
     % Parse playstarttrialtone
-    subject_data.distance = str2double(subject_data.distance);
     playTone = str2double(subject_data.playstarttrialtone);
     if isnan(playTone)
         playTone = 2;
@@ -77,7 +76,7 @@ try
 
     % Acceleration outliers
     accOutlierTF = isoutlier(A, "movmedian", 5);
-    accOutlierMoveMedian = sum(accOutlierTF) / subject_data.distance;
+    accOutlier = sum(accOutlierTF) / subject_data.distance;
 
     % Calculate jerk
     Jx = diff(Ax) ./ diff(t);
@@ -86,7 +85,7 @@ try
     Jy = [0; Jy];
 
     J = sqrt(Jx.^2 + Jy.^2);
-    jerkOutlierMoveMedian = sum(isoutlier(J, "movmedian", 5)) / subject_data.distance;
+    jerkOutlier = sum(isoutlier(J, "movmedian", 5)) / subject_data.distance;
 
     %% Optional Plotting
     if plotFlag
@@ -105,8 +104,8 @@ try
 
 catch
     fprintf("An error occurred for id = %d\n", id);
-    accOutlierMoveMedian = NaN;
-    jerkOutlierMoveMedian = NaN;
+    accOutlier = NaN;
+    jerkOutlier = NaN;
 end
 
 end

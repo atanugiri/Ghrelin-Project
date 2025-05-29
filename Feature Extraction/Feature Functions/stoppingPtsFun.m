@@ -36,7 +36,6 @@ subject_data = fetch(conn, query);
 
 try
     % Parse playstarttrialtone
-    subject_data.distance = str2double(subject_data.distance);
     playTone = str2double(subject_data.playstarttrialtone);
     if isnan(playTone)
         playTone = 2;

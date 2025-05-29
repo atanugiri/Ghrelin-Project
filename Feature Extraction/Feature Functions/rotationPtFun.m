@@ -30,8 +30,6 @@ try
     if isnan(subject_data.playstarttrialtone)
         subject_data.playstarttrialtone = 2;
     end
-    subject_data.distance = str2double( ...
-    subject_data.distance);
 
     % Accessing PGArray data as double
     for column = size(subject_data,2) - 1:size(subject_data,2)
