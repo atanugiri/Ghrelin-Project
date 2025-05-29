@@ -1,4 +1,4 @@
-function [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, totalTimeInAllConc] = ...
+function [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, timeInCenter] = ...
     extractTimeInZone(id, conn, time_filter, plotFlag)
 % Author: Atanu Giri
 % Date: 05/20/2025
@@ -44,8 +44,8 @@ query = sprintf( ...
 subject_data = fetch(conn, query);
 
 try
-    subject_data.mazenumber = regexprep(string(subject_data.mazenumber), 'maze\s*(\d+)', '$1');
-    maze = str2double(subject_data.mazenumber);
+    maze = regexprep(string(subject_data.mazenumber), 'maze\s*(\d+)', '$1');
+    maze = str2double(maze);
     % Parse norm_t, norm_x, norm_y as arrays
     for colName = ["norm_t", "norm_x", "norm_y"]
         rawStr = string(subject_data.(colName));
@@ -65,24 +65,34 @@ try
     y = data.Y(pcFilter);
 
     % Use helper to compute time in zones
-    [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5] = ...
-        extractTimeInFeederFromCoordinates(x, y, maze);
-    totalTimeInAllConc = timeInConc9 + timeInConc5 + timeInConc2 + timeInConc0_5;
+    quadrants = [1, 2, 3, 4]; mazes = [2, 1, 3, 4];
+    quadrant = quadrants(mazes == maze);
+    edgeStruct = getMazeEdgeRegions(quadrant);
+    zoneNames = {'Feeder1', 'Feeder2', 'Feeder3', 'Feeder4', 'Center'};
+    timeInZone = zeros(1, 5);
+
+    for zone = 1:5
+        [xEdge, yEdge] = edgeStruct.(zoneNames{zone}){:};
+        filter = x >= xEdge(1) & x <= xEdge(2) & y >= yEdge(1) & y <= yEdge(2);
+        timeInZone(zone) = sum(filter)*0.1;
+    end
+
+    timeInConc9 = timeInZone(1); timeInConc5 = timeInZone(2); timeInConc2 = timeInZone(3);
+    timeInConc0_5 = timeInZone(4); timeInCenter = timeInZone(5);
 
     % Optional plot
     if plotFlag
-        quadrants = [1, 2, 3, 4]; mazes = [2, 1, 3, 4];
-        quadrant = quadrants(mazes == maze);
         figure;
         plot(x, y, '.', 'Color', 'k'); hold on;
-        mazeMethods(maze);
+        mazeMethods(quadrant);
         hold off;
+        axis tight; axis equal;
         title(sprintf('Trajectory for ID %d (Maze %d)', id, quadrant));
     end
 
 catch ME
     fprintf("Error in extractTimeInZone for ID %d: %s\n", id, ME.message);
-    [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, totalTimeInAllConc] = deal(NaN);
+    [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, timeInCenter] = deal(NaN);
 end
 
 end
