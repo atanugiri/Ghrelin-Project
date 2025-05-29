@@ -33,7 +33,7 @@ if strcmpi(feature, 'approachavoid')
     lb{1} = [0, -Inf, 0.5]; ub{1} = [1, Inf, 9];
     lb{2} = [0, -Inf, 0.5, 0]; ub{2} = [1, Inf, 9, 1];
     lb{3} = [0, -Inf, 0.5, 0]; ub{3} = [1, Inf, 9, 1];
-elseif strcmpi(feature, 'time_in_feeder_25')
+elseif strcmpi(feature, 'time_in_feeder')
     lb{1} = [0, -Inf, 0.5]; ub{1} = [15, Inf, 9];
     lb{2} = [0, -Inf, 0.5, 0]; ub{2} = [15, Inf, 9, 15];
     lb{3} = [0, -Inf, 0.5, 0]; ub{3} = [15, Inf, 9, 15];
@@ -73,7 +73,7 @@ legend('Data', 'Fitted Curve');
 hold off;
 if strcmpi(feature, 'approachavoid')
     ylim([0, 1]);
-elseif strcmpi(feature, 'time_in_feeder_25')
+elseif strcmpi(feature, 'time_in_feeder')
     ylim([0, 15]);
 end
 end

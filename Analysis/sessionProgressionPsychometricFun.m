@@ -15,7 +15,7 @@
 function varargout = sessionProgressionPsychometricFun(feature, ...
 treatmentGroup, combineSections, animalList)
 
-% feature = 'entry_time_25'; treatmentGroup = 'P2A Boost and alcohol'; 
+% feature = 'entry_time'; treatmentGroup = 'P2A Boost and alcohol'; 
 % combineSections = 'y'; animalList = {};
 
 if nargin < 4
@@ -50,7 +50,7 @@ end
 [featureForEach, stdErr, trialCt] = psychometricFunValuesPerSession(treatment_data, feature);
 
 % Special for 'P2A Boost and alcohol'
-if strcmpi(treatmentGroup, 'P2A Boost and alcohol') & ~strcmpi(feature, 'entry_time_25')
+if strcmpi(treatmentGroup, 'P2A Boost and alcohol') & ~strcmpi(feature, 'entry_time')
     validSessions = trialCt(:,1) > 80;
     featureForEach = featureForEach(validSessions, :);
     stdErr = stdErr(validSessions, :);
