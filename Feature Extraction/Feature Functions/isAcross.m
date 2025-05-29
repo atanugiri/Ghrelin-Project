@@ -88,10 +88,9 @@ try
     % Across-feeder edge
     acrossMap = [3, 4, 1, 2]; % This convention is same for all mazes
     acrossFeeder = acrossMap(feeder);
-    [feeder1_edge, feeder2_edge, feeder3_edge, feeder4_edge] = ...
-        feederEdgesByQuadrant(quadrant);
-    feederEdges = {feeder1_edge, feeder2_edge, feeder3_edge, feeder4_edge};
-    acrossFeederEdge = feederEdges{acrossFeeder};
+    edgeStruct = getMazeEdgeRegions(quadrant);
+    fieldName = sprintf('Feeder%d', acrossFeeder);
+    acrossFeederEdge = edgeStruct.(fieldName);
     x_edge = acrossFeederEdge{1}; y_edge = acrossFeederEdge{2};
 
     % Initial position in across-feeder zone?
