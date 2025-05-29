@@ -1,6 +1,4 @@
 function [is_across, initially_in_center] = initialPositionFeatures(id, conn, plotFlag)
-% isAcross: Determine if animal started in across-feeder zone during trial tone.
-%
 %   Output:
 %     - is_across            : 1 if the initial position is in the across-feeder zone, 0 otherwise.
 %     - initially_in_center  : 1 if the animal's initial position is in the center zone, 0 otherwise.
