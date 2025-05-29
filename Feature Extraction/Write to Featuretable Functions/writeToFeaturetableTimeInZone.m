@@ -12,7 +12,7 @@ function writeToFeaturetableTimeInZone(idList, conn)
         "ADD COLUMN IF NOT EXISTS timein_conc5 FLOAT, " + ...
         "ADD COLUMN IF NOT EXISTS timein_conc2 FLOAT, " + ...
         "ADD COLUMN IF NOT EXISTS timein_conc0_5 FLOAT, " + ...
-        "ADD COLUMN IF NOT EXISTS timein_all_conc FLOAT" ...
+        "ADD COLUMN IF NOT EXISTS time_in_center FLOAT" ...
         );
 
     nUpdated = 0;
@@ -21,9 +21,9 @@ function writeToFeaturetableTimeInZone(idList, conn)
         id = idList(i);
 
         try
-            [t9, t5, t2, t0_5, t_all] = extractTimeInZone(id, conn);
+            [t9, t5, t2, t0_5, t_c] = extractTimeInZone(id, conn);
 
-            if any(isnan([t9, t5, t2, t0_5, t_all]))
+            if any(isnan([t9, t5, t2, t0_5, t_c]))
                 fprintf("ID %d: one or more NaN values — skipped\n", id);
                 continue;
             end
@@ -32,11 +32,11 @@ function writeToFeaturetableTimeInZone(idList, conn)
                 "UPDATE ghrelin_featuretable SET " + ...
                 "timein_conc9 = %f, timein_conc5 = %f, " + ...
                 "timein_conc2 = %f, timein_conc0_5 = %f, " + ...
-                "timein_all_conc = %f WHERE id = %d", ...
-                t9, t5, t2, t0_5, t_all, id);
+                "time_in_center = %f WHERE id = %d", ...
+                t9, t5, t2, t0_5, t_c, id);
 
             exec(conn, updateSQL);
-            fprintf("ID %d: time = [%.2f, %.2f, %.2f, %.2f, %.2f] (updated)\n", id, t9, t5, t2, t0_5, t_all);
+            fprintf("ID %d: time = [%.2f, %.2f, %.2f, %.2f, %.2f] (updated)\n", id, t9, t5, t2, t0_5, t_c);
             nUpdated = nUpdated + 1;
 
         catch e
