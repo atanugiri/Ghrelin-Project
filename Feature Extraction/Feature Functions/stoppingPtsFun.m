@@ -27,7 +27,7 @@ end
 
 % Combined query from both tables
 query = sprintf( ...
-    "SELECT g.id, g.distance_until_limiting_time_stamp, norm_t, norm_x, norm_y, " + ...
+    "SELECT g.id, g.distance, norm_t, norm_x, norm_y, " + ...
     "l.playstarttrialtone FROM ghrelin_featuretable g " + ...
     "JOIN live_table l ON g.id = l.id " + ...
     "WHERE g.id = %d", ...
@@ -36,7 +36,7 @@ subject_data = fetch(conn, query);
 
 try
     % Parse playstarttrialtone
-    subject_data.distance_until_limiting_time_stamp = str2double(subject_data.distance_until_limiting_time_stamp);
+    subject_data.distance = str2double(subject_data.distance);
     playTone = str2double(subject_data.playstarttrialtone);
     if isnan(playTone)
         playTone = 2;
@@ -79,7 +79,7 @@ try
                 bulbIndexes{method}(k:k + windowSize(method) - 1) = true;
             end
         end
-        stoppingPts(method) = sum(bulbIndexes{method}) / subject_data.distance_until_limiting_time_stamp;
+        stoppingPts(method) = sum(bulbIndexes{method}) / subject_data.distance;
 
         % Optional plot for method 6
         if plotFlag && method == 6

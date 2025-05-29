@@ -2,7 +2,7 @@
 % Date: 03/14/2024
 
 [featureForEachMale, featureForEachFemale] = masterPsychometricFunctionPlot( ...
-    'distance_until_limiting_time_stamp', 'y', 'P2L1 Saline', 'P2L1 Ghrelin');
+    'distance', 'y', 'P2L1 Saline', 'P2L1 Ghrelin');
 
 
 controlMale = featureForEachMale{1};

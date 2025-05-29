@@ -5,8 +5,8 @@ function writeToFeaturetableDistanceVelocity(idList, conn)
 % Updates ghrelin_featuretable with distance and velocity values
 
 % Ensure the columns exist (if not already present)
-exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS distance_until_limiting_time_stamp FLOAT");
-exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS velocity_until_limiting_time_stamp FLOAT");
+exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS distance FLOAT");
+exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS velocity FLOAT");
 
 nUpdated = 0;
 failedIDs = [];
@@ -28,7 +28,7 @@ for i = 1:length(idList)
         end
 
         updateSQL = sprintf( ...
-            "UPDATE ghrelin_featuretable SET distance_until_limiting_time_stamp = %s, velocity_until_limiting_time_stamp = %s WHERE id = %d", ...
+            "UPDATE ghrelin_featuretable SET distance = %s, velocity = %s WHERE id = %d", ...
             distStr, velStr, id);
 
         exec(conn, updateSQL);
