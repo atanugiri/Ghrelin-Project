@@ -159,3 +159,93 @@ figure;
 for i = 1:3
     trajectoryPlot(sal_isacross_data_maze1.id(i), gcf);
 end
+
+% 05/29/2025
+t0_5_sal = []; t0_5_ghr = [];
+t2_sal = []; t2_ghr = [];
+t5_sal = []; t5_ghr = [];
+t9_sal = []; t9_ghr = [];
+
+[T1, T2] = masterPsychometricFunctionPlot('timein_conc9', [], '', 'trial', [], ...
+    'P2L1 Saline', 'P2L1 Ghrelin');
+
+t0_5_sal = [t0_5_sal; mean(T1{1})];
+t2_sal = [t2_sal; mean(T1{2})];
+t5_sal = [t5_sal; mean(T1{3})];
+t9_sal = [t9_sal; mean(T1{4})];
+
+t0_5_ghr = [t0_5_ghr; mean(T2{1})];
+t2_ghr = [t2_ghr; mean(T2{2})];
+t5_ghr = [t5_ghr; mean(T2{3})];
+t9_ghr = [t9_ghr; mean(T2{4})];
+
+[T1, T2] = masterPsychometricFunctionPlot('timein_conc5', [], '', 'trial', [], ...
+    'P2L1 Saline', 'P2L1 Ghrelin');
+
+t0_5_sal = [t0_5_sal; mean(T1{1})];
+t2_sal = [t2_sal; mean(T1{2})];
+t5_sal = [t5_sal; mean(T1{3})];
+t9_sal = [t9_sal; mean(T1{4})];
+
+t0_5_ghr = [t0_5_ghr; mean(T2{1})];
+t2_ghr = [t2_ghr; mean(T2{2})];
+t5_ghr = [t5_ghr; mean(T2{3})];
+t9_ghr = [t9_ghr; mean(T2{4})];
+
+[T1, T2] = masterPsychometricFunctionPlot('timein_conc2', [], '', 'trial', [], ...
+    'P2L1 Saline', 'P2L1 Ghrelin');
+
+t0_5_sal = [t0_5_sal; mean(T1{1})];
+t2_sal = [t2_sal; mean(T1{2})];
+t5_sal = [t5_sal; mean(T1{3})];
+t9_sal = [t9_sal; mean(T1{4})];
+
+t0_5_ghr = [t0_5_ghr; mean(T2{1})];
+t2_ghr = [t2_ghr; mean(T2{2})];
+t5_ghr = [t5_ghr; mean(T2{3})];
+t9_ghr = [t9_ghr; mean(T2{4})];
+
+[T1, T2] = masterPsychometricFunctionPlot('timein_conc0_5', [], '', 'trial', [], ...
+    'P2L1 Saline', 'P2L1 Ghrelin');
+
+t0_5_sal = [t0_5_sal; mean(T1{1})];
+t2_sal = [t2_sal; mean(T1{2})];
+t5_sal = [t5_sal; mean(T1{3})];
+t9_sal = [t9_sal; mean(T1{4})];
+
+t0_5_ghr = [t0_5_ghr; mean(T2{1})];
+t2_ghr = [t2_ghr; mean(T2{2})];
+t5_ghr = [t5_ghr; mean(T2{3})];
+t9_ghr = [t9_ghr; mean(T2{4})];
+
+[T1, T2] = masterPsychometricFunctionPlot('time_in_center', [], '', 'trial', [], ...
+    'P2L1 Saline', 'P2L1 Ghrelin');
+
+t0_5_sal = [t0_5_sal; mean(T1{1})];
+t2_sal = [t2_sal; mean(T1{2})];
+t5_sal = [t5_sal; mean(T1{3})];
+t9_sal = [t9_sal; mean(T1{4})];
+
+t0_5_ghr = [t0_5_ghr; mean(T2{1})];
+t2_ghr = [t2_ghr; mean(T2{2})];
+t5_ghr = [t5_ghr; mean(T2{3})];
+t9_ghr = [t9_ghr; mean(T2{4})];
+
+% Data matrix: rows = offer concentrations, columns = time spent in zones
+stackData = [t0_5_sal(:)';  % Offer at 0.5%
+             t2_sal(:)';    % Offer at 2%
+             t5_sal(:)';    % Offer at 5%
+             t9_sal(:)'];   % Offer at 9%
+
+% X-axis labels
+offerLabels = {'0.5%', '2%', '5%', '9%'};
+
+% Create the stacked bar plot
+figure;
+bar(stackData, 'stacked');
+set(gca, 'XTickLabel', offerLabels, 'FontSize', 12);
+xlabel('Offered Concentration');
+ylabel('Time Spent (s)');
+legend({'Feeder 9%', 'Feeder 5%', 'Feeder 2%', 'Feeder 0.5%', 'Center'}, ...
+       'Location', 'northeastoutside');
+title('Time Spent per Zone (Saline)', 'FontWeight', 'bold');
