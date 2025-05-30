@@ -1,9 +1,9 @@
-function [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, timeInCenter] = ...
-    extractTimeInZone(id, conn, time_filter, plotFlag)
+function [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, timeInCenter, ...
+    timeInNest] = extractTimeInZone(id, conn, time_filter, plotFlag)
 % Author: Atanu Giri
 % Date: 05/20/2025
 %
-% extractTimeInZone - Computes time spent in each feeder zone.
+% extractTimeInZone - Computes time spent in each defined zone.
 %
 % Input:
 %   id          - trial ID
@@ -12,7 +12,8 @@ function [timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, timeInCenter] = 
 %   plotFlag    - (optional) true to plot trajectory, default = false
 %
 % Output:
-%   timeInConc9, timeInConc5, timeInConc2, timeInConc0_5 - Time spent (in sec) in each feeder zone
+%   timeInConc9, timeInConc5, timeInConc2, timeInConc0_5, timeInCenter, timeInNest
+%   - Time spent (in sec) in each defined zone
 
 % Set up DB connection if not passed in
 if nargin < 2 || isempty(conn)
@@ -68,17 +69,18 @@ try
     quadrants = [1, 2, 3, 4]; mazes = [2, 1, 3, 4];
     quadrant = quadrants(mazes == maze);
     edgeStruct = getMazeEdgeRegions(quadrant);
-    zoneNames = {'Feeder1', 'Feeder2', 'Feeder3', 'Feeder4', 'Center'};
-    timeInZone = zeros(1, 5);
+    zoneNames = {'Feeder1', 'Feeder2', 'Feeder3', 'Feeder4', 'Center', 'Nest'};
+    timeInZone = zeros(1, numel(zoneNames));
 
-    for zone = 1:5
+    for zone = 1:length(timeInZone)
         [xEdge, yEdge] = edgeStruct.(zoneNames{zone}){:};
         filter = x >= xEdge(1) & x <= xEdge(2) & y >= yEdge(1) & y <= yEdge(2);
         timeInZone(zone) = sum(filter)*0.1;
     end
 
-    timeInConc9 = timeInZone(1); timeInConc5 = timeInZone(2); timeInConc2 = timeInZone(3);
-    timeInConc0_5 = timeInZone(4); timeInCenter = timeInZone(5);
+    timeInConc9 = timeInZone(1); timeInConc5 = timeInZone(2);
+    timeInConc2 = timeInZone(3); timeInConc0_5 = timeInZone(4);
+    timeInCenter = timeInZone(5); timeInNest = timeInZone(6);
 
     % Optional plot
     if plotFlag
