@@ -132,7 +132,7 @@ sal_q = sprintf("SELECT g.id, g.is_across, l.approachavoid, l.mazenumber, " + ..
 sal_data = fetch(conn, sal_q);
 sal_data.approachavoid = str2double(string(sal_data.approachavoid));
 sal_data.feeder = str2double(string(sal_data.feeder));
-sal_isacross_data = sal_data(sal_data.is_across == 1 & sal_data.approachavoid == 1, :);
+sal_isacross_data = sal_data(sal_data.is_across == 1, :);
 sal_isacross_id = sal_isacross_data.id;
 
 ghr_id = treatmentIDfun('P2L1 Ghrelin', conn);
@@ -143,11 +143,13 @@ ghr_q = sprintf("SELECT g.id, g.is_across, l.approachavoid, l.mazenumber, " + ..
 ghr_data = fetch(conn, ghr_q);
 ghr_data.approachavoid = str2double(string(ghr_data.approachavoid));
 ghr_data.feeder = str2double(string(ghr_data.feeder));
-ghr_isacross_data = ghr_data(ghr_data.is_across == 1 & ghr_data.approachavoid == 1, :);
+ghr_isacross_data = ghr_data(ghr_data.is_across == 1, :);
 ghr_isacross_id = ghr_isacross_data.id;
 
 [T1, T2] = masterPsychometricFunctionPlot('curvature', [], 'curvature', ...
     'trial', [], sal_isacross_id, ghr_isacross_id);
+[T1, T2] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], [-Inf 0.75], ...
+sal_isacross_id, ghr_isacross_id);
 
 sal_isacross_data.mazenumber = string(sal_isacross_data.mazenumber);
 ghr_isacross_data.mazenumber = string(ghr_isacross_data.mazenumber);
