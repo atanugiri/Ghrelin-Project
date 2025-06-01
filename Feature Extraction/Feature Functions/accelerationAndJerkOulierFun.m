@@ -25,7 +25,7 @@ end
 
 % Combined query from both tables
 query = sprintf( ...
-    "SELECT g.id, g.distance, norm_t, norm_x, norm_y, " + ...
+    "SELECT g.id, norm_t, norm_x, norm_y, " + ...
     "l.playstarttrialtone FROM ghrelin_featuretable g " + ...
     "JOIN live_table l ON g.id = l.id " + ...
     "WHERE g.id = %d", ...
@@ -76,7 +76,7 @@ try
 
     % Acceleration outliers
     accOutlierTF = isoutlier(A, "movmedian", 5);
-    accOutlier = sum(accOutlierTF) / subject_data.distance;
+    accOutlier = sum(accOutlierTF);
 
     % Calculate jerk
     Jx = diff(Ax) ./ diff(t);
@@ -85,7 +85,7 @@ try
     Jy = [0; Jy];
 
     J = sqrt(Jx.^2 + Jy.^2);
-    jerkOutlier = sum(isoutlier(J, "movmedian", 5)) / subject_data.distance;
+    jerkOutlier = sum(isoutlier(J, "movmedian", 5));
 
     %% Optional Plotting
     if plotFlag
