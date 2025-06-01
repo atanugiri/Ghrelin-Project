@@ -2,8 +2,7 @@
 % Date: 01/02/2024
 
 function [BL_P2L1_id, BL_P2L1L3_id, FD_P2L1_id, initial_task_id, late_task_id, ...
-    PF_P2L1_id, PF_P2L1L3_id] ...
-= extract_treatment_ids(varargin)
+    PF_P2L1_id, PF_P2L1L3_id] = extract_treatment_ids(varargin)
 % This function extracts Baseline, Food deprivation, Initial task, and Late
 % task Pre-feeding ids
 
