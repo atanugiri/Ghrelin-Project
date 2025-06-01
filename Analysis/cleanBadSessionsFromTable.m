@@ -40,10 +40,12 @@ for animal = 1:length(animalList)
 
         if strcmpi(feature, 'approachavoid')
             featureList = getPsychometricByTrial(sessionData, feature);
+            % Convert each cell to its average value
+            avgVals = cellfun(@(x) mean(x, 'omitnan'), featureList);
 
-            % If all of approach rate = 0, sensor not working.
-            if all(featureList == 0)
-                deleteIDs = [deleteIDs; sessionData.id]; % Exclude session
+            % Check if all averages are zero
+            if all(avgVals == 0)
+                deleteIDs = [deleteIDs; sessionData.id];
                 continue;
             end
         end
