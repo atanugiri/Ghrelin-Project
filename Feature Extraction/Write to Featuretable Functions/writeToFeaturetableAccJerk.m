@@ -1,62 +1,34 @@
-% clear; clc;
-datasource = 'live_database';
-conn = database(datasource,'postgres','1234');
-dateQuery = "SELECT id, referencetime FROM live_table ORDER BY id";
-allDates = fetch(conn, dateQuery);
-allDates.referencetime = datetime(allDates.referencetime, 'Format', 'MM/dd/yyyy');
-startDate = datetime('09/12/2023', 'InputFormat', 'MM/dd/yyyy');
-endDate = datetime('12/11/2023', 'InputFormat', 'MM/dd/yyyy');
-endDate = endDate + days(1);
+% Author: Atanu Giri  
+% Date: 06/01/2025  
+%
+function writeToFeaturetableAccJerk(idList, conn)
+% Updates ghrelin_featuretable with acc_outlier and jerk_outlier for given idList
 
-dataInRange = allDates(allDates.referencetime >= startDate & allDates.referencetime <= endDate, :);
-idList = dataInRange.id;
+    % Ensure the columns exist (create if not)
+    exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS acc_outlier FLOAT");
+    exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS jerk_outlier FLOAT");
 
-tableName = 'ghrelin_featuretable';
+    nUpdated = 0;
 
-for index = 1:length(idList)
-    id = idList(index);
-    try
-        [accOutlierMoveMedian,jerkOutlierMoveMedian] = accelerationAndJerkOulierFun(id, conn);
+    for i = 1:length(idList)
+        id = idList(i);
+        [accOutlier, jerkOutlier] = accelerationAndJerkOulierFun(id, conn, false);
 
-        % Convert NaN values to NULL
-        accOutlierMoveMedian = handleNaN(accOutlierMoveMedian);
-        jerkOutlierMoveMedian = handleNaN(jerkOutlierMoveMedian);
-
-        % Handle empty values
-        accOutlierMoveMedian = handleEmpty(accOutlierMoveMedian);
-        jerkOutlierMoveMedian = handleEmpty(jerkOutlierMoveMedian);
-
-        % Convert NaN values to 'NULL' for text columns
-        accOutlierMoveMedian = convertToString(accOutlierMoveMedian);
-        jerkOutlierMoveMedian = convertToString(jerkOutlierMoveMedian);
-
-        updateQuery = sprintf("UPDATE %s SET acc_outlier=%s, " + ...
-            "jerk_outlier=%s WHERE id=%d", tableName, ...
-            accOutlierMoveMedian, jerkOutlierMoveMedian, id);
-
-        exec(conn, updateQuery);
-
-    catch ME
-        fprintf("Calculation error in %d: %s\n", id, ME.message);
-        continue;
+        if ~isnan(accOutlier) && ~isnan(jerkOutlier)
+            try
+                updateSQL = sprintf( ...
+                    "UPDATE ghrelin_featuretable SET acc_outlier = %f, jerk_outlier = %f WHERE id = %d", ...
+                    accOutlier, jerkOutlier, id);
+                exec(conn, updateSQL);
+                fprintf("ID %d: acc = %.2f, jerk = %.2f (updated)\n", id, accOutlier, jerkOutlier);
+                nUpdated = nUpdated + 1;
+            catch e
+                warning("Failed to update ID %d: %s", id, e.message);
+            end
+        else
+            fprintf("ID %d: acc or jerk = NaN (skipped)\n", id);
+        end
     end
-end
 
-function value = handleNaN(value)
-    if isnan(value)
-        value = 'NULL';
-    end
-end
-
-function value = handleEmpty(value)
-    if isempty(value)
-        value = 'NULL';
-    end
-end
-
-function value = convertToString(value)
-    % Convert to numeric if not NaN or empty
-    if all(~isnan(value)) && all(~isempty(value))
-        value = num2str(value); % Convert to string for uniformity
-    end
+    fprintf("Successfully updated %d rows.\n", nUpdated);
 end
