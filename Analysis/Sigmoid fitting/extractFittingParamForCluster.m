@@ -14,16 +14,7 @@ conn = database(datasource,'postgres','1234');
 treatmentID = treatmentIDfun(treatment, conn);
 treatmentID = strjoin(arrayfun(@num2str, treatmentID, 'UniformOutput', false), ',');
 treatment_data = fetchHealthDataTable(feature, treatmentID, conn);
-
-% L1 and L3 task in L1L3 will naturally have 20 trials
-trtGroupsToExclude = {'P2L1L3 BL for comb boost and alc L1', ...
-    'P2L1L3 BL for comb boost and alc L3','P2L1L3 Boost and alcohol L1', ...
-    'P2L1L3 Boost and alcohol L3', 'P2L1L3 Post alcohol L1', ...
-    'P2L1L3 Post alcohol L3'};
-
-if ~ismember(treatment,trtGroupsToExclude)
-    treatment_data = cleanBadSessionsFromTable(treatment_data, feature); % Remove bad sessions
-end
+treatment_data = cleanBadSessionsFromTable(treatment_data, feature, treatment);
 
 % File where the fitting results (.mat) and fit plot (pdf) will be saved
 fileName = sprintf("%s_%s_fitting_param", treatment, feature);

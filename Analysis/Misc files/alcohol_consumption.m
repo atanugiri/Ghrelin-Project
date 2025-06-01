@@ -32,16 +32,7 @@ conn = database(datasource,'postgres','1234');
 treatmentIDs = treatmentIDfun(trtGroup, conn);
 treatmentIDs_str = strjoin(arrayfun(@num2str, treatmentIDs, 'UniformOutput', false), ',');
 treatment_data = fetchHealthDataTable('approachavoid', treatmentIDs_str, conn);
-
-% L1 and L3 task in L1L3 will naturally have 20 trials
-trtGroupsToExclude = {'P2L1L3 BL for comb boost and alc L1', ...
-    'P2L1L3 BL for comb boost and alc L3','P2L1L3 Boost and alcohol L1', ...
-    'P2L1L3 Boost and alcohol L3', 'P2L1L3 Post alcohol L1', ...
-    'P2L1L3 Post alcohol L3'};
-
-if ~ismember(trtGroup,trtGroupsToExclude)
-    treatment_data = cleanBadSessionsFromTable(treatment_data, 'approachavoid'); % Remove bad sessions
-end
+treatment_data = cleanBadSessionsFromTable(treatment_data, 'approachavoid', trtGroup);
 
 % Create placeholder
 animalList = {males, females};
@@ -60,7 +51,7 @@ for sex = 1:2
 
     for animal = 1:numel(animals)
         % Calculations for male
-        [featureForEach, ~, trialCt] = psychometricFunValuesPerSession(treatment_data, ...
+        [featureForEach, ~, trialCt] = getPsychometricBySession(treatment_data, ...
             'approachavoid', animals{animal});
 
         approachNum = featureForEach.*trialCt;

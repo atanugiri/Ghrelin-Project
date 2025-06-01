@@ -32,17 +32,9 @@ treatmentIDs_str = cellfun(@(x) strjoin(arrayfun(@num2str, x, 'UniformOutput', .
     false), ','), treatmentIDs, 'UniformOutput', false);
 treatment_data = cell(1, numel(treatmentIDs_str));
 
-% L1 and L3 task in L1L3 will naturally have 20 trials
-trtGroupsToExclude = {'P2L1L3 BL for comb boost and alc L1', ...
-    'P2L1L3 BL for comb boost and alc L3','P2L1L3 Boost and alcohol L1', ...
-    'P2L1L3 Boost and alcohol L3', 'P2L1L3 Post alcohol L1', ...
-    'P2L1L3 Post alcohol L3'};
-
 for i = 1:numel(treatmentIDs_str)
     treatment_data{i} = fetchHealthDataTable(feature, treatmentIDs_str{i}, conn);
-    if ~ismember(treatmentGroups{i}, trtGroupsToExclude)
-        treatment_data{i} = cleanBadSessionsFromTable(treatment_data{i}, feature); % Remove bad sessions
-    end
+    treatment_data{i} = cleanBadSessionsFromTable(treatment_data{i}, feature, treatmentGroups{i});
 end
 
 %% Plotting

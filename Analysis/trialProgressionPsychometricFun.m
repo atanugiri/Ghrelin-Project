@@ -26,17 +26,7 @@ treatmentIDs = treatmentIDfun(treatmentGroup, conn);
 % Generate the idList from the filtered data
 treatmentIDs_str = strjoin(arrayfun(@num2str, treatmentIDs, 'UniformOutput', false), ',');
 treatment_data = fetchHealthDataTable(feature, treatmentIDs_str, conn);
-
-% L1 and L3 task in L1L3 will naturally have 20 trials
-trtGroupsToExclude = {'P2L1L3 BL for comb boost and alc L1', ...
-    'P2L1L3 BL for comb boost and alc L3','P2L1L3 Boost and alcohol L1', ...
-    'P2L1L3 Boost and alcohol L3', 'P2L1L3 Post alcohol L1', ...
-    'P2L1L3 Post alcohol L3'};
-
-if ~ismember(treatmentGroup,trtGroupsToExclude)
-    treatment_data = cleanBadSessionsFromTable(treatment_data, feature); % Remove bad sessions
-end
-
+treatment_data = cleanBadSessionsFromTable(treatment_data, feature, treatmentGroup);
 treatment_data = sortrows(treatment_data, 'trialname');
 
 % Filter treatment_data if animalList is provided
@@ -57,7 +47,7 @@ for j = 1:4
     % Filter treatment_data{i} based on trialname range
     splitData = treatment_data(ismember(treatment_data.trialname, trialRange), :);
 
-    featurePerSession = psychometricFunValuesPerSession(splitData, feature);
+    featurePerSession = getPsychometricBySession(splitData, feature);
     avFeature = mean(featurePerSession);
     std_dev = std(featurePerSession);
     stdErr = std_dev ./sqrt(size(featurePerSession, 1));
