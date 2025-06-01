@@ -110,27 +110,13 @@ end
 % Prepare output containers
 treatment_data = cell(1, numel(treatmentGroups));
 
-% Define groups to exclude from bad session cleaning
-trtGroupsToExclude = {'P2L1L3 Baseline L1','P2L1L3 Baseline L3', ...
-    'P2L1L3 BL for comb boost and alc L1', 'P2L1L3 BL for comb boost and alc L3', ...
-    'P2L1L3 Boost and alcohol L1', 'P2L1L3 Boost and alcohol L3', ...
-    'P2L1L3 Post alcohol L1', 'P2L1L3 Post alcohol L3'};
-
 for i = 1:numel(treatment_data)
     conn = database('live_database','postgres','1234');
     treatment_data{i} = fetchHealthDataTable(feature, treatmentIDs{i}, conn, distanceRange);
 
-    % If this is not a raw ID list, apply cleanBadSessions if allowed
+    % Clean sessions only if not custom ID list
     if ~isCustomIDList(i)
-        flatGroups = treatmentGroups{i};
-        if ischar(flatGroups) || isstring(flatGroups)
-            flatGroups = {char(flatGroups)};
-        end
-        flatGroups = string(flatGroups);
-
-        if all(~ismember(flatGroups, trtGroupsToExclude))
-            treatment_data{i} = cleanBadSessionsFromTable(treatment_data{i}, feature);
-        end
+        treatment_data{i} = cleanBadSessionsFromTable(treatment_data{i}, feature, treatmentGroups{i});
     end
 
     close(conn);
