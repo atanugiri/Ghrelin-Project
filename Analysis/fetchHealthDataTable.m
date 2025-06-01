@@ -26,6 +26,8 @@ if isApproachAvoid
         "FROM ghrelin_featuretable g JOIN live_table l ON g.id = l.id " + ...
         "WHERE g.id IN (%s) ORDER BY g.id;", idListStr);
     mergedTable = fetch(conn, query);
+    mergedTable.approachavoid = str2double(mergedTable.approachavoid);
+
 else
     % Determine all needed columns
     allVars = unique([usedVars, {'distance'}]);  % always include distance
