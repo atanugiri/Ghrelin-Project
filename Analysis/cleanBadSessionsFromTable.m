@@ -4,7 +4,22 @@
 % Delete the bad sessions (where number of trials < 40 and there is a 
 % nan entry at any concentration)
 %
-function Data = cleanBadSessionsFromTable(Data, feature)
+function Data = cleanBadSessionsFromTable(Data, feature, treatmentGroup)
+
+% Define groups to exclude from bad session cleaning
+% L1 and L3 task in L1L3 will naturally have 20 trials.
+trtGroupsToExclude = {'P2L1L3 Baseline L1','P2L1L3 Baseline L3', ...
+    'P2L1L3 BL for comb boost and alc L1', 'P2L1L3 BL for comb boost and alc L3', ...
+    'P2L1L3 Boost and alcohol L1', 'P2L1L3 Boost and alcohol L3', ...
+    'P2L1L3 Post alcohol L1', 'P2L1L3 Post alcohol L3'};
+
+% Skip cleaning if group is excluded
+if nargin >= 3
+    flatGroup = string(treatmentGroup);
+    if any(ismember(flatGroup, trtGroupsToExclude))
+        return;  % Return original data without cleaning
+    end
+end
 
 % initiate id array to delete
 deleteIDs = [];
