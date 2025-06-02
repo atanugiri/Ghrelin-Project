@@ -1,75 +1,38 @@
-% clear; clc;
-datasource = 'live_database';
-conn = database(datasource,'postgres','1234');
-dateQuery = "SELECT id, referencetime FROM live_table ORDER BY id";
-allDates = fetch(conn, dateQuery);
-allDates.referencetime = datetime(allDates.referencetime, 'Format', 'MM/dd/yyyy');
-startDate = datetime('09/12/2023', 'InputFormat', 'MM/dd/yyyy');
-endDate = datetime('12/11/2023', 'InputFormat', 'MM/dd/yyyy');
-endDate = endDate + days(1);
+function writeToFeaturetableLogicalApproach(idList, conn)
+% Updates ghrelin_featuretable with logical_approach, time_in_feeder, and entry_time
 
-dataInRange = allDates(allDates.referencetime >= startDate & allDates.referencetime <= endDate, :);
-idList = dataInRange.id;
+    % Ensure columns exist
+    exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS logical_approach SMALLINT");
+    exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS time_in_feeder FLOAT");
+    exec(conn, "ALTER TABLE ghrelin_featuretable ADD COLUMN IF NOT EXISTS entry_time FLOAT");
 
-tableName = 'ghrelin_featuretable';
+    nUpdated = 0;
 
-% idList = strjoin(arrayfun(@num2str, idList, 'UniformOutput', false), ',');
-% ftq = sprintf("SELECT * FROM ghrelin_featuretable WHERE id IN (%s) ORDER BY id;", idList);
-
-%% Add new columns example
-% alterQuery = "ALTER TABLE ghrelin_featuretable " + ...
-%     "ADD COLUMN entry_time text, " + ...
-%     "ADD COLUMN logical_approach text, " + ...
-%     "ADD COLUMN logical_approach_2s text";
-% exec(conn, alterQuery);
-
-for index = 1:length(idList)
-    id = idList(index);
-    try
+    for i = 1:length(idList)
+        id = idList(i);
         [logicalApproach, timeInFeeder, entryTime] = logicalApproachFun(id, conn);
+        logicalApproach = round(logicalApproach);  % ensure it's 0 or 1
 
-        % Convert NaN values to NULL
-        logicalApproach = handleNaN(logicalApproach);
-        timeInFeeder = handleNaN(timeInFeeder);
-        entryTime = handleNaN(entryTime);
-
-        % Handle empty values
-        logicalApproach = handleEmpty(logicalApproach);
-        timeInFeeder = handleEmpty(timeInFeeder);
-        entryTime = handleEmpty(entryTime);
-
-        % Convert NaN values to 'NULL' for text columns
-        logicalApproach = convertToString(logicalApproach);
-        timeInFeeder = convertToString(timeInFeeder);
-        entryTime = convertToString(entryTime);
-
-        updateQuery = sprintf("UPDATE %s SET logical_approach=%s, " + ...
-            "time_in_feeder=%s, entry_time=%s WHERE id=%d", tableName, ...
-            logicalApproach, timeInFeeder, entryTime, id);
-
-        exec(conn, updateQuery);
-
-    catch ME
-        fprintf("Calculation error in %d: %s\n", id, ME.message);
-        continue;
+        if ~isnan(logicalApproach) && ~isnan(timeInFeeder) && ~isnan(entryTime)
+            try
+                updateSQL = sprintf(...
+                    "UPDATE ghrelin_featuretable SET logical_approach = %d, " + ...
+                    "time_in_feeder = %f, entry_time = %f WHERE id = %d", ...
+                    logicalApproach, timeInFeeder, entryTime, id);
+                exec(conn, updateSQL);
+                
+                fprintf("ID %d: logical_approach = %d, time_in_feeder = %.2f, " + ...
+                        "entry_time = %.2f (updated)\n", ...
+                        id, logicalApproach, timeInFeeder, entryTime);
+                nUpdated = nUpdated + 1;
+            catch e
+                warning("Failed to update ID %d: %s", id, e.message);
+            end
+        else
+            fprintf("ID %d: logical_approach = %s, time_in_feeder = %s, entry_time = %s (skipped)\n", ...
+                id, mat2str(logicalApproach), mat2str(timeInFeeder), mat2str(entryTime));
+        end
     end
-end
 
-function value = handleNaN(value)
-    if isnan(value)
-        value = 'NULL';
-    end
-end
-
-function value = handleEmpty(value)
-    if isempty(value)
-        value = 'NULL';
-    end
-end
-
-function value = convertToString(value)
-    % Convert to numeric if not NaN or empty
-    if all(~isnan(value)) && all(~isempty(value))
-        value = num2str(value); % Convert to string for uniformity
-    end
+    fprintf("Successfully updated %d rows.\n", nUpdated);
 end
