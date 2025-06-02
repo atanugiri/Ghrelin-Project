@@ -1,47 +1,65 @@
+function [stopTime, numStops] = stoppingPtsFun(id, conn, time_filter, ...
+    plotFlag, windowSize, xBoxWidth, yBoxWidth)
 % Author: Atanu Giri
-% Date: 12/25/2023
+% Date: 06/01/2025
+%
+% stoppingPtsFun - Computes total stop time and number of stopping points
+%
+% Input:
+%   id          - trial ID
+%   conn        - (optional) database connection object
+%   time_filter - (optional) 2-element vector [t_start, t_end], default = [2, 20]
+%   plotFlag    - (optional) true to plot trajectory, default = false
+%   windowSize  - (optional) number of points in moving window, default = 30
+%   xBoxWidth   - (optional) spatial threshold for X range, default = 0.1
+%   yBoxWidth   - (optional) spatial threshold for Y range, default = 0.1
+%
+% Output:
+%   stopTime    - Total stop time in seconds
+%   numStops    - Number of distinct stopping points (center of window)
 
-function [stoppingPts_method1, stoppingPts_method2, stoppingPts_method3, stoppingPts_method4, ...
-    stoppingPts_method5, stoppingPts_method6] = stoppingPtsFun(id, varargin)
-% This function returns the total stoptime in trajectory using 6 methods.
-% Optional: Provide a database connection and/or enable plotting (plotFlag = true) for method 6.
-
-% Default settings
-plotFlag = false;
-conn = [];
-
-% Check optional inputs
-for i = 1:numel(varargin)
-    if islogical(varargin{i})
-        plotFlag = varargin{i};
-    elseif isobject(varargin{i}) && isa(varargin{i}, 'database')
-        conn = varargin{i};
-    end
+% Handle default connection
+if nargin < 2 || isempty(conn)
+    conn = database('live_database', 'postgres', '1234');
 end
 
-% Make connection if not provided
-if isempty(conn)
-    datasource = 'live_database';
-    conn = database(datasource,'postgres','1234');
+% Default time window
+if nargin < 3 || isempty(time_filter)
+    t_start = 2;
+    t_end = 20;
+else
+    t_start = time_filter(1);
+    t_end = time_filter(2);
 end
 
-% Combined query from both tables
+% Default plot flag
+if nargin < 4 || isempty(plotFlag)
+    plotFlag = false;
+end
+
+% Optional method params
+if nargin < 5 || isempty(windowSize), windowSize = 30; end
+if nargin < 6 || isempty(xBoxWidth), xBoxWidth = 0.1; end
+if nargin < 7 || isempty(yBoxWidth), yBoxWidth = 0.1; end
+
+% Initialize outputs
+stopTime = NaN;
+numStops = NaN;
+
+% Fetch trajectory data
 query = sprintf( ...
-    "SELECT g.id, g.distance, norm_t, norm_x, norm_y, " + ...
-    "l.playstarttrialtone FROM ghrelin_featuretable g " + ...
+    "SELECT g.id, norm_t, norm_x, norm_y, l.mazenumber " + ...
+    "FROM ghrelin_featuretable g " + ...
     "JOIN live_table l ON g.id = l.id " + ...
-    "WHERE g.id = %d", ...
-    id);
-subject_data = fetch(conn, query);
+    "WHERE g.id = %d", id);
 
 try
-    % Parse playstarttrialtone
-    playTone = str2double(subject_data.playstarttrialtone);
-    if isnan(playTone)
-        playTone = 2;
-    end
+    subject_data = fetch(conn, query);
 
-    % Parse norm_t, norm_x, norm_y as numeric arrays
+    maze = regexprep(string(subject_data.mazenumber), 'maze\s*(\d+)', '$1');
+    maze = str2double(maze);
+
+    % Parse norm_t, norm_x, norm_y into arrays
     for colName = ["norm_t", "norm_x", "norm_y"]
         rawStr = string(subject_data.(colName));
         cleanedStr = regexprep(rawStr, '[{}]', '');
@@ -49,56 +67,48 @@ try
         subject_data.(colName){1} = str2double(splitStr);
     end
 
-    limitingTimeIndex = 20;
-
-    % Create coordinate table
+    % Build table and filter by time
     data = table(subject_data.norm_t{1}, subject_data.norm_x{1}, ...
         subject_data.norm_y{1}, 'VariableNames', {'t', 'X', 'Y'});
 
-    % Present cost (PC) range: playTone–20 sec
-    pcFilter = data.t >= playTone & data.t <= limitingTimeIndex;
+    % Remove NaNs
+    valid = ~isnan(data.t) & ~isnan(data.X) & ~isnan(data.Y);
+    data = data(valid, :);
+
+    % Filter to present cost (PC) range
+    pcFilter = data.t >= t_start & data.t <= t_end;
     t = data.t(pcFilter);
     X = data.X(pcFilter);
     Y = data.Y(pcFilter);
 
-    % Define methods
-    windowSize = [5,5,10,10,20,30];
-    xBoxWidth = [0.01,0.02,0.01,0.02,0.1,0.1];
-    yBoxWidth = [0.01,0.02,0.01,0.02,0.1,0.1];
-    stoppingPts = zeros(1, numel(windowSize));
-    bulbIndexes = cell(1, numel(windowSize));
-
-    % Scan array for stopping points
-    for method = 1:numel(windowSize)
-        bulbIndexes{method} = false(numel(X), 1);
-        for k = 2:numel(X) - windowSize(method)
-            xWindow = X(k:k + windowSize(method) - 1);
-            yWindow = Y(k:k + windowSize(method) - 1);
-            if range(xWindow) < xBoxWidth(method) && range(yWindow) < yBoxWidth(method)
-                bulbIndexes{method}(k:k + windowSize(method) - 1) = true;
-            end
-        end
-        stoppingPts(method) = sum(bulbIndexes{method}) / subject_data.distance;
-
-        % Optional plot for method 6
-        if plotFlag && method == 6
-            scatter(X(bulbIndexes{method}), Y(bulbIndexes{method}), 15, 'r', 'filled');
+    % Find stopping points by center of small windows
+    n = numel(X);
+    bulbIndexes = false(n, 1);
+    for k = 1:n - windowSize
+        xWindow = X(k:k + windowSize - 1);
+        yWindow = Y(k:k + windowSize - 1);
+        if range(xWindow) < xBoxWidth && range(yWindow) < yBoxWidth
+            centerIdx = k + floor(windowSize / 2);
+            bulbIndexes(centerIdx) = true;
         end
     end
 
-    stoppingPts_method1 = stoppingPts(1);
-    stoppingPts_method2 = stoppingPts(2);
-    stoppingPts_method3 = stoppingPts(3);
-    stoppingPts_method4 = stoppingPts(4);
-    stoppingPts_method5 = stoppingPts(5);
-    stoppingPts_method6 = stoppingPts(6);
-catch
-    fprintf("An error occurred for ID = %d\n", id);
-    stoppingPts_method1 = NaN;
-    stoppingPts_method2 = NaN;
-    stoppingPts_method3 = NaN;
-    stoppingPts_method4 = NaN;
-    stoppingPts_method5 = NaN;
-    stoppingPts_method6 = NaN;
+    numStops = sum(bulbIndexes);
+    dt = median(diff(t));
+    stopTime = numStops * dt;
+
+    % Optional plotting
+    if plotFlag
+        trajectoryPlot(id);
+        hold on;
+        scatter(X(bulbIndexes), Y(bulbIndexes), 15, 'r', 'filled');
+        quadrants = [1, 2, 3, 4]; mazes = [2, 1, 3, 4];
+        quadrant = quadrants(mazes == maze);
+        mazeMethods(quadrant, [], [], [], false);
+        hold off;
+    end
+
+catch e
+    fprintf("An error occurred for ID = %d: %s\n", id, e.message);
 end
 end
