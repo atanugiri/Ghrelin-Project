@@ -251,3 +251,85 @@ ylabel('Time Spent (s)');
 legend({'Feeder 9%', 'Feeder 5%', 'Feeder 2%', 'Feeder 0.5%', 'Center'}, ...
        'Location', 'northeastoutside');
 title('Time Spent per Zone (Saline)', 'FontWeight', 'bold');
+
+% 06/06/2025
+% With log transform and wo clipping
+[T1, T2, T3] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], ...
+    [0.75 Inf], 'P2L1 Baseline', 'P2L1 Food deprivation', 'P2L1 Prefeeding');
+
+figure; hold on;
+
+% Custom colors
+baselineColor = [0.2, 0.6, 0.8];     % bluish
+foodDeprColor = [0.9, 0.4, 0.4];     % reddish
+prefeedingColor = [0.95, 0.7, 0.2];  % orange/yellowish
+
+histogram(T1, 'Normalization', 'probability', ...
+    'FaceAlpha', 0.5, 'DisplayName', 'Baseline', 'FaceColor', baselineColor);
+histogram(T2, 'Normalization', 'probability', ...
+    'FaceAlpha', 0.5, 'DisplayName', 'Food deprivation', 'FaceColor', foodDeprColor);
+histogram(T3, 'Normalization', 'probability', ...
+    'FaceAlpha', 0.5, 'DisplayName', 'Prefeeding', 'FaceColor', prefeedingColor);
+
+legend;
+xlabel('log_{10}(Curvature + 1)');
+ylabel('Probability');
+title('Histogram of Curvature (Log Transformed)');
+
+% With log transform and with clipping
+P2L1_BL_id = treatmentIDfun('P2L1 Baseline', conn);
+P2L1_FD_id = treatmentIDfun('P2L1 Food deprivation', conn);
+P2L1_PF_id = treatmentIDfun('P2L1 Prefeeding', conn);
+
+P2L1_BL_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
+    "id in (%s)", strjoin(string(P2L1_BL_id), ','));
+P2L1_BL_data = fetch(conn, P2L1_BL_q);
+
+clipThresh = prctile(P2L1_BL_data.curvature, 99); % Compute clipping threshold
+validIdx = P2L1_BL_data.curvature < clipThresh; % Logical mask for clipped data
+P2L1_BL_id = P2L1_BL_data.id(validIdx);
+
+
+P2L1_FD_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
+    "id in (%s)", strjoin(string(P2L1_FD_id), ','));
+P2L1_FD_data = fetch(conn, P2L1_FD_q);
+
+clipThresh = prctile(P2L1_FD_data.curvature, 99); % Compute clipping threshold
+validIdx = P2L1_FD_data.curvature < clipThresh; % Logical mask for clipped data
+P2L1_FD_id = P2L1_FD_data.id(validIdx);
+
+
+P2L1_PF_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
+    "id in (%s)", strjoin(string(P2L1_PF_id), ','));
+P2L1_PF_data = fetch(conn, P2L1_PF_q);
+
+clipThresh = prctile(P2L1_PF_data.curvature, 99); % Compute clipping threshold
+validIdx = P2L1_PF_data.curvature < clipThresh; % Logical mask for clipped data
+P2L1_PF_id = P2L1_PF_data.id(validIdx);
+
+[T1, T2, T3] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], ...
+    [0.75 Inf], P2L1_BL_id, P2L1_FD_id, P2L1_PF_id);
+
+
+% Saline vs Ghrelin
+sal_id = treatmentIDfun('P2L1 Saline', conn);
+ghr_id = treatmentIDfun('P2L1 Ghrelin', conn);
+
+sal_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
+    "id in (%s)", strjoin(string(sal_id), ','));
+sal_data = fetch(conn, sal_q);
+
+clipThresh = prctile(sal_data.curvature, 99); % Compute clipping threshold
+validIdx = sal_data.curvature < clipThresh; % Logical mask for clipped data
+sal_id = sal_data.id(validIdx);
+
+ghr_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
+    "id in (%s)", strjoin(string(ghr_id), ','));
+ghr_data = fetch(conn, ghr_q);
+
+clipThresh = prctile(ghr_data.curvature, 99); % Compute clipping threshold
+validIdx = ghr_data.curvature < clipThresh; % Logical mask for clipped data
+ghr_id = ghr_data.id(validIdx);
+
+[T1, T2] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], ...
+    [0.75 Inf], sal_id, ghr_id);
