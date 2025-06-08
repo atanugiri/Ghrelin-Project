@@ -61,6 +61,12 @@ else
         if ~isa(mergedTable.(featureExpr), 'double')
             mergedTable.(featureExpr) = str2double(mergedTable.(featureExpr));
         end
+
+        % This block needs to be changed; this is temporary fix
+        if strcmpi(featureExpr, "curvature")
+            mergedTable.(featureExpr) = log10(mergedTable.(featureExpr) + 1);
+        end
+
     end
 end
 
