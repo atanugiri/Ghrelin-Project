@@ -97,4 +97,9 @@ function normData = normalizeData(tempData, normType)
     end
 end
 
+% Write normalized data to Excel
+outputFile = sprintf('%s.xlsx', titleStr);
+dataTable = array2table(data, 'VariableNames', matlab.lang.makeValidName(labels));
+writetable(dataTable, outputFile, 'Sheet', 'NormalizedData');
+
 end
