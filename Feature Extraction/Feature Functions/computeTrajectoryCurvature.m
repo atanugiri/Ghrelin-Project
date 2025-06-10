@@ -65,12 +65,24 @@ function curvature = computeTrajectoryCurvature(id, conn, plotFlag)
         ddx = gradient(dx);
         ddy = gradient(dy);
 
+        % Speed
+        speed = sqrt(dx.^2 + dy.^2);
+
         % Curvature formula
         curvatureVals = abs(dx .* ddy - dy .* ddx) ./ (dx.^2 + dy.^2).^(3/2);
-        curvatureVals(~isfinite(curvatureVals)) = 0;
+
+        % Invalidate curvature where speed is too low
+        curvatureVals(speed < 1e-2) = NaN;
+
+        % Remove non-finite values (e.g., NaNs from zero-speed filtering)
+        curvatureVals(~isfinite(curvatureVals)) = [];
 
         % Final output: mean curvature
-        curvature = mean(curvatureVals);
+        if ~isempty(curvatureVals)
+            curvature = mean(curvatureVals);
+        else
+            curvature = NaN;
+        end
 
         % Optional plot
         if plotFlag
