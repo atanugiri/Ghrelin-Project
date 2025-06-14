@@ -1,3 +1,16 @@
+%% Noldus data analysis
+% 1-way ANOVA results
+[p, tbl, stats] = twoWayAnova(3, true, 'Black_animal_simple', ...
+    "Food Center Freq_K.csv", "Light Alone Freq_K.csv", "Toy Alone Freq_K.csv");
+[p, tbl, stats] = twoWayAnova(3, true, 'Black_animal_complex', ...
+    'Food Light ALL Animlas Freq_K.csv', "Toy Light Freq (Border)_K.csv", ...
+    "EM LE (open-closed)+PIX_K.csv");
+[p, tbl, stats] = twoWayAnova(3, true, 'White_animal_simple', ...
+    'FA + Controls.csv', "LA + Controls.csv", "TA + Controls.csv");
+[p, tbl, stats] = twoWayAnova(3, true, 'White_animal_complex', ...
+    'FL + Controls.csv', 'TL + Controls.csv', 'EM (time in open - time in closed).csv');
+
+%% Ghrelin_featuretable data analysis
 % 05/19/2025
 conn = database('live_database','postgres','1234');
 
@@ -33,24 +46,44 @@ ghr_data_maze1 = ghr_Data(ghr_Data.mazenumber == 'maze 1', :);
 ghr_data_maze1 = ghr_data_maze1(ghr_data_maze1.distance > 0.75 & ...
     ghr_data_maze1.distance < 2, :);
 
+% Saline scatterplot
 figure;
 for i = 1:20
     trajectoryScatterPlot(sal_data_maze1.id(i), gcf);
 end
 mazeMethods(2);
 
+% Ghrelin scatterplot
 figure;
 for i = 1:20
     trajectoryScatterPlot(ghr_data_maze1.id(i), gcf);
 end
 mazeMethods(2);
 
-%% acceleration outlier
+% Time inside nest
+[T1, T2] = masterPsychometricBarPlot('time_in_nest', [], '', 'trial', ...
+    [], [], 'P2L1 Saline', 'P2L1 Ghrelin');
+p = ranksum(T1, T2);
+saveToExcel('time_in_nest', T1, T2, {'Saline', 'Ghrelin'});
+
+% Time outside nest
+[T1, T2] = masterPsychometricBarPlot('18 - time_in_nest', [], '', 'trial', ...
+    [], [], 'P2L1 Saline', 'P2L1 Ghrelin');
+p = ranksum(T1, T2);
+saveToExcel('time_outside_nest', T1, T2, {'Saline', 'Ghrelin'});
+
+
+% acceleration outlier
 accelerationAndJerkOulierFun(96243, conn, true); % Saline
 accelerationAndJerkOulierFun(94689, conn, true); % Ghrelin
 
+[T1, T2] = masterPsychometricBarPlot('acc_outlier/distance', [], '', ...
+    'trial', [], [], 'P2L1 Saline', 'P2L1 Ghrelin');
+p = ranksum(T1, T2);
+saveToExcel('number_of_high_acc', T1, T2, {'Saline', 'Ghrelin'});
 
-%% Trajectories
+
+% Trajectories
 % Ghrelin
 ids = [95085, 95117, 99606, 99622, 99654, 100234];
 figure;
@@ -66,26 +99,6 @@ for id = ids
     trajectoryPlot(id, gcf);
 end
 mazeMethods(2);
-
-%% Cumulative time in feeders
-% [T1, T2] = masterPsychometricBarPlot('timein_all_conc', [], ...
-%     'timein_all_conc', 'trial', [], [], {'P2L1 Saline'}, {'P2L1 Ghrelin'});
-% p = ranksum(T1, T2);
-
-%% Curvature
-% [T1, T2] = masterPsychometricBarPlot('curvature', [], 'curvature', ...
-%     'trial', [], 0.75, {'P2L1 Saline'}, {'P2L1 Ghrelin'});
-% p = ranksum(T1, T2);
-
-%% Nest example
-% figure;
-% for i = 1:20
-%     trajectoryScatterPlot(sal_data_maze1.id(i), gcf);
-% end
-% figure;
-% for i = 1:20
-%     trajectoryScatterPlot(ghr_data_maze1.id(i), gcf);
-% end
 
 
 % 05/23/2025
@@ -162,153 +175,6 @@ for i = 1:3
     trajectoryPlot(sal_isacross_data_maze1.id(i), gcf);
 end
 
-% 05/29/2025
-t0_5_sal = []; t0_5_ghr = [];
-t2_sal = []; t2_ghr = [];
-t5_sal = []; t5_ghr = [];
-t9_sal = []; t9_ghr = [];
-
-[T1, T2] = masterPsychometricFunctionPlot('timein_conc9', [], '', 'trial', [], ...
-    'P2L1 Saline', 'P2L1 Ghrelin');
-
-t0_5_sal = [t0_5_sal; mean(T1{1})];
-t2_sal = [t2_sal; mean(T1{2})];
-t5_sal = [t5_sal; mean(T1{3})];
-t9_sal = [t9_sal; mean(T1{4})];
-
-t0_5_ghr = [t0_5_ghr; mean(T2{1})];
-t2_ghr = [t2_ghr; mean(T2{2})];
-t5_ghr = [t5_ghr; mean(T2{3})];
-t9_ghr = [t9_ghr; mean(T2{4})];
-
-[T1, T2] = masterPsychometricFunctionPlot('timein_conc5', [], '', 'trial', [], ...
-    'P2L1 Saline', 'P2L1 Ghrelin');
-
-t0_5_sal = [t0_5_sal; mean(T1{1})];
-t2_sal = [t2_sal; mean(T1{2})];
-t5_sal = [t5_sal; mean(T1{3})];
-t9_sal = [t9_sal; mean(T1{4})];
-
-t0_5_ghr = [t0_5_ghr; mean(T2{1})];
-t2_ghr = [t2_ghr; mean(T2{2})];
-t5_ghr = [t5_ghr; mean(T2{3})];
-t9_ghr = [t9_ghr; mean(T2{4})];
-
-[T1, T2] = masterPsychometricFunctionPlot('timein_conc2', [], '', 'trial', [], ...
-    'P2L1 Saline', 'P2L1 Ghrelin');
-
-t0_5_sal = [t0_5_sal; mean(T1{1})];
-t2_sal = [t2_sal; mean(T1{2})];
-t5_sal = [t5_sal; mean(T1{3})];
-t9_sal = [t9_sal; mean(T1{4})];
-
-t0_5_ghr = [t0_5_ghr; mean(T2{1})];
-t2_ghr = [t2_ghr; mean(T2{2})];
-t5_ghr = [t5_ghr; mean(T2{3})];
-t9_ghr = [t9_ghr; mean(T2{4})];
-
-[T1, T2] = masterPsychometricFunctionPlot('timein_conc0_5', [], '', 'trial', [], ...
-    'P2L1 Saline', 'P2L1 Ghrelin');
-
-t0_5_sal = [t0_5_sal; mean(T1{1})];
-t2_sal = [t2_sal; mean(T1{2})];
-t5_sal = [t5_sal; mean(T1{3})];
-t9_sal = [t9_sal; mean(T1{4})];
-
-t0_5_ghr = [t0_5_ghr; mean(T2{1})];
-t2_ghr = [t2_ghr; mean(T2{2})];
-t5_ghr = [t5_ghr; mean(T2{3})];
-t9_ghr = [t9_ghr; mean(T2{4})];
-
-[T1, T2] = masterPsychometricFunctionPlot('time_in_center', [], '', 'trial', [], ...
-    'P2L1 Saline', 'P2L1 Ghrelin');
-
-t0_5_sal = [t0_5_sal; mean(T1{1})];
-t2_sal = [t2_sal; mean(T1{2})];
-t5_sal = [t5_sal; mean(T1{3})];
-t9_sal = [t9_sal; mean(T1{4})];
-
-t0_5_ghr = [t0_5_ghr; mean(T2{1})];
-t2_ghr = [t2_ghr; mean(T2{2})];
-t5_ghr = [t5_ghr; mean(T2{3})];
-t9_ghr = [t9_ghr; mean(T2{4})];
-
-% Data matrix: rows = offer concentrations, columns = time spent in zones
-stackData = [t0_5_sal(:)';  % Offer at 0.5%
-             t2_sal(:)';    % Offer at 2%
-             t5_sal(:)';    % Offer at 5%
-             t9_sal(:)'];   % Offer at 9%
-
-% X-axis labels
-offerLabels = {'0.5%', '2%', '5%', '9%'};
-
-% Create the stacked bar plot
-figure;
-bar(stackData, 'stacked');
-set(gca, 'XTickLabel', offerLabels, 'FontSize', 12);
-xlabel('Offered Concentration');
-ylabel('Time Spent (s)');
-legend({'Feeder 9%', 'Feeder 5%', 'Feeder 2%', 'Feeder 0.5%', 'Center'}, ...
-       'Location', 'northeastoutside');
-title('Time Spent per Zone (Saline)', 'FontWeight', 'bold');
-
-% 06/06/2025
-% With log transform and wo clipping
-[T1, T2, T3] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], ...
-    [0.75 Inf], 'P2L1 Baseline', 'P2L1 Food deprivation', 'P2L1 Prefeeding');
-
-figure; hold on;
-
-% Custom colors
-baselineColor = [0.2, 0.6, 0.8];     % bluish
-foodDeprColor = [0.9, 0.4, 0.4];     % reddish
-prefeedingColor = [0.95, 0.7, 0.2];  % orange/yellowish
-
-histogram(T1, 'Normalization', 'probability', ...
-    'FaceAlpha', 0.5, 'DisplayName', 'Baseline', 'FaceColor', baselineColor);
-histogram(T2, 'Normalization', 'probability', ...
-    'FaceAlpha', 0.5, 'DisplayName', 'Food deprivation', 'FaceColor', foodDeprColor);
-histogram(T3, 'Normalization', 'probability', ...
-    'FaceAlpha', 0.5, 'DisplayName', 'Prefeeding', 'FaceColor', prefeedingColor);
-
-legend;
-xlabel('log_{10}(Curvature + 1)');
-ylabel('Probability');
-title('Histogram of Curvature (Log Transformed)');
-
-% With log transform and with clipping
-P2L1_BL_id = treatmentIDfun('P2L1 Baseline', conn);
-P2L1_FD_id = treatmentIDfun('P2L1 Food deprivation', conn);
-P2L1_PF_id = treatmentIDfun('P2L1 Prefeeding', conn);
-
-P2L1_BL_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
-    "id in (%s)", strjoin(string(P2L1_BL_id), ','));
-P2L1_BL_data = fetch(conn, P2L1_BL_q);
-
-clipThresh = prctile(P2L1_BL_data.curvature, 99); % Compute clipping threshold
-validIdx = P2L1_BL_data.curvature < clipThresh; % Logical mask for clipped data
-P2L1_BL_id = P2L1_BL_data.id(validIdx);
-
-
-P2L1_FD_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
-    "id in (%s)", strjoin(string(P2L1_FD_id), ','));
-P2L1_FD_data = fetch(conn, P2L1_FD_q);
-
-clipThresh = prctile(P2L1_FD_data.curvature, 99); % Compute clipping threshold
-validIdx = P2L1_FD_data.curvature < clipThresh; % Logical mask for clipped data
-P2L1_FD_id = P2L1_FD_data.id(validIdx);
-
-
-P2L1_PF_q = sprintf("SELECT id, curvature FROM ghrelin_featuretable WHERE " + ...
-    "id in (%s)", strjoin(string(P2L1_PF_id), ','));
-P2L1_PF_data = fetch(conn, P2L1_PF_q);
-
-clipThresh = prctile(P2L1_PF_data.curvature, 99); % Compute clipping threshold
-validIdx = P2L1_PF_data.curvature < clipThresh; % Logical mask for clipped data
-P2L1_PF_id = P2L1_PF_data.id(validIdx);
-
-[T1, T2, T3] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], ...
-    [0.75 Inf], P2L1_BL_id, P2L1_FD_id, P2L1_PF_id);
 
 
 % Saline vs Ghrelin
@@ -333,3 +199,19 @@ ghr_id = ghr_data.id(validIdx);
 
 [T1, T2] = masterPsychometricBarPlot('curvature', [], '', 'trial', [], ...
     [0.75 Inf], sal_id, ghr_id);
+
+
+% Curvature analysis (06/10/25)
+BL_curv_q = sprintf("SELECT curvature FROM ghrelin_featuretable WHERE id IN (%s)", strjoin(string(P2L1_BL_id), ','));
+BL_curv_data = fetch(conn, BL_curv_q);
+FD_curv_q = sprintf("SELECT curvature FROM ghrelin_featuretable WHERE id IN (%s)", strjoin(string(P2L1_FD_id), ','));
+FD_curv_data = fetch(conn, FD_curv_q);
+PF_curv_q = sprintf("SELECT curvature FROM ghrelin_featuretable WHERE id IN (%s)", strjoin(string(P2L1_PF_id), ','));
+PF_curv_data = fetch(conn, PF_curv_q);
+sal_curv_q = sprintf("SELECT curvature FROM ghrelin_featuretable WHERE id IN (%s)", strjoin(string(P2L1_sal_id), ','));
+sal_curv_data = fetch(conn, sal_curv_q);
+ghr_curv_q = sprintf("SELECT curvature FROM ghrelin_featuretable WHERE id IN (%s)", strjoin(string(P2L1_ghr_id), ','));
+ghr_curv_data = fetch(conn, ghr_curv_q);
+
+[fig, ax] = overlayHistograms(BL_curv_data.curvature, FD_curv_data.curvature, PF_curv_data.curvature);
+legend(ax, {'BL', 'FD', 'PF'});
