@@ -10,7 +10,7 @@
 % [p, tbl, stats] = twoWayAnova(2, "FL + Controls.csv", "TL + Controls.csv",
 % "EM (time in open - time in closed).csv");
 %
-function [p, tbl, stats] = twoWayAnova(normType, varargin)
+function [p, tbl, stats] = twoWayAnova(normType, saveToExcel, fileName, varargin)
 
 data = [];
 g2 = []; % Simple vs Complex
@@ -65,22 +65,21 @@ if strcmpi(comparison, 'yes')
     g1 = categorical(g1label); g2 = categorical(g2label);
 
 else
-    % allGroups = input('Do you want to include all treatment groups? ("yes" or "no"): ');
-    %
-    % if strcmpi(allGroups, 'no')
-    %     idx = input('Specify column index: ');
-    %     filteredData = data(:, idx); filteredG1 = g1(:, idx); filteredG2 = g2(:, idx);
-    %     Y = filteredData(:); g1 = filteredG1(:); g2 = filteredG2(:);
-    % else
     Y = data(:); g1 = g1(:); g2 = g2(:);
-    % end
-
     g1 = categorical(g1); g2 = categorical(g2);
 end
 
 % Remove nan indexes
 idx = isfinite(Y);
 Y = Y(idx); g1 = g1(idx); g2 = g2(idx);
+
+% Save to Excel
+if saveToExcel
+    % Create table for Y, g1, g2
+    dataTable = table(Y, g1, g2, 'VariableNames', {'Y', 'Treatment', 'Complexity'});
+    writetable(dataTable, [fileName, '.xlsx']);
+    disp('Data saved to Excel.');
+end
 
 if length(unique(g2)) > 1
     % Perform 2-way ANOVA
