@@ -39,17 +39,14 @@ end
 
 % Plot
 figure;
-b = bar(means);  % Create bar object
-colormap(jet(length(means)));
-colors = colormap;  % Get the actual RGB colors
-b.FaceColor = 'flat';  % Needed to color bars individually
+hold on;
 
-% Apply color per bar
 for i = 1:length(means)
-    b.CData(i, :) = colors(i, :);
+    % Draw each bar separately
+    bar(i, means(i), 'FaceColor', [0.7 0.7 0.7], 'EdgeColor', 'k'); 
 end
 
-hold on;
+% Add error bars
 errorbar(1:length(means), means, sems, 'k.', 'LineWidth', 1.5);
 
 % Overlay individual data points with jitter
