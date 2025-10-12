@@ -11,7 +11,7 @@ function writeToFeaturetableCurvature(idList, conn)
 
     for i = 1:length(idList)
         id = idList(i);
-        curvature = computeTrajectoryCurvature(id, conn);
+        curvature = computeTrajectoryCurvature(id, conn, 20);
 
         if ~isnan(curvature)
             try
