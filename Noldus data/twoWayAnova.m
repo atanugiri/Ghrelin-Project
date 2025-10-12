@@ -1,109 +1,121 @@
-% Author: Atanu Giri
-% Date: 03/12/2025
+function [p, tbl, stats, pair] = twoWayAnova(normType, saveToExcel, fileName, varargin)
+% twoWayAnova  (pooled 1-way ANOVA across files) + t-test + Wilcoxon RS
+% Usage examples (same as before):
+% [p, tbl, stats] = twoWayAnova(3, true, 'Black_animal_simple', ...
+%     "Food Center Freq_K.csv","Light Alone Freq_K.csv","Toy Alone Freq_K.csv");
+% [p, tbl, stats] = twoWayAnova(3, true, 'Black_animal_complex', ...
+%     "Food Light ALL Animlas Freq_K.csv","Toy Light Freq (Border)_K.csv");
+% [p, tbl, stats] = twoWayAnova(3, true, 'White_animal_simple', ...
+%     "FA + Controls.csv","LA + Controls.csv","TA + Controls.csv");
 %
-% This function takes mutiple nx6 table of behavioral task and performs
-% 1-way or 2-way ANOVA. User can specify if they want to perform analysis
-% on whole dataset or a particular treatment group.
+% Returns:
+%   p, tbl, stats  - anovan outputs (1-way on Treatment)
+%   pair           - struct with pooled pairwise stats (ttest2 + ranksum)
 %
-% Example usage
-% [p, tbl, stats] = twoWayAnova(1, "FA + Controls.csv", "LA + Controls.csv", "TA + Controls.csv");
-% [p, tbl, stats] = twoWayAnova(2, "FL + Controls.csv", "TL + Controls.csv",
-% "EM (time in open - time in closed).csv");
+% Behavior:
+%   - Reads all files, normalizes each by `normType`, selects two columns
+%     (defaults to first two; you can enter indices once when prompted),
+%     pools them as Group A (e.g., Saline) and Group B (e.g., Ghrelin),
+%     runs 1-way ANOVA on Treatment, and also reports t-test & Wilcoxon.
 %
-function [p, tbl, stats] = twoWayAnova(normType, saveToExcel, fileName, varargin)
+% Note:
+%   With exactly two groups, 1-way ANOVA F is equivalent to t^2; we still
+%   report all three (ANOVA, t-test, ranksum) since your PI asked for both.
 
-data = [];
-g2 = []; % Simple vs Complex
+pair = struct();  % optional 4th output
 
-% Get labels
-g1_names = readtable(varargin{1}).Properties.VariableNames;
+% ---------- Read first file to show columns ----------
+T0 = readtable(varargin{1});
+varNames = T0.Properties.VariableNames;
 
+fprintf('\nColumns in first file:\n');
+for i = 1:numel(varNames)
+    fprintf('  %2d: %s\n', i, varNames{i});
+end
+def = '[1 2]';
+idxStr = input(sprintf('Indices for the TWO groups to compare (default %s): ', def), 's');
+if isempty(idxStr), idx = eval(def); else, idx = eval(idxStr); end
+assert(numel(idx)==2, 'Please specify exactly two column indices (e.g., [1 2]).');
+gA_idx = idx(1); gB_idx = idx(2);
+
+% ---------- Accumulate data across files ----------
+A = []; B = [];
 for i = 1:numel(varargin)
-    tempData = readmatrix(varargin{i});
-
-    tempData = normalizeData(tempData, normType);
-
-    % Ask the user whether the dataset is 'simple' (1) or 'complex' (2)
-    taskType = input(sprintf('Enter task type for dataset %d (1 = Simple, 2 = Complex): ', i));
-
-    % Validate input
-    while ~ismember(taskType, [1, 2])
-        taskType = input('Invalid input. Enter 1 for Simple or 2 for Complex: ');
-    end
-
-    % Store task type for each row of the dataset
-    g2 = [g2; repmat(taskType, size(tempData))];
-
-    % Concatenate data
-    data = [data; tempData];
+    Ti = readtable(varargin{i});
+    Xi = Ti{:, [gA_idx, gB_idx]};
+    Xi = normalizeData(Xi, normType);      % apply your normalization
+    A  = [A; Xi(:,1)]; %#ok<AGROW>
+    B  = [B; Xi(:,2)]; %#ok<AGROW>
 end
 
-% Create labels
-g1 = repmat(g1_names,size(data, 1),1); % Health groups
+% ---------- Long format for ANOVA ----------
+A = A(:); B = B(:);
+mask = isfinite(A) & isfinite(B);  % keep finite entries
+% (If columns have differing NaN patterns you might prefer independent masks;
+% but for pooled comparison this “both finite” rule is simple & conservative.)
 
-% User input for analysis whole dataset or specific treatment group
-comparison = input('Do you want to compare specific treatment groups? ("yes" or "no"): ');
+YA = A(mask); YB = B(mask);
+Y  = [YA; YB];
+Treatment = categorical([repmat("GroupA", numel(YA), 1); repmat("GroupB", numel(YB), 1)]);
 
-if strcmpi(comparison, 'yes')
-    % User input for specific treatment groups. Provide a number of list of
-    % numbers. e.g. grp1idx = 1 or [1,3].
-    T1idx = input('First treatment group index: ');
-    T2idx = input('Second treatment group index: ');
-
-    % Extract treatment data
-    T1data = data(:,T1idx); T2data = data(:,T2idx);
-
-    % Extract treatment label
-    g1_label_T1 = g1(:,T1idx); g1_label_T2 = g1(:,T2idx);
-    g2_label_T1 = g2(:,T1idx); g2_label_T2 = g2(:,T2idx);
-
-    % Prepare data for ANOVA
-    Y = [T1data(:); T2data(:)];
-    g1label = [g1_label_T1(:); g1_label_T2(:)];
-    g2label = [g2_label_T1(:); g2_label_T2(:)];
-
-    g1 = categorical(g1label); g2 = categorical(g2label);
-
-else
-    Y = data(:); g1 = g1(:); g2 = g2(:);
-    g1 = categorical(g1); g2 = categorical(g2);
-end
-
-% Remove nan indexes
-idx = isfinite(Y);
-Y = Y(idx); g1 = g1(idx); g2 = g2(idx);
-
-% Save to Excel
+% Optional save to Excel
 if saveToExcel
-    % Create table for Y, g1, g2
-    dataTable = table(Y, g1, g2, 'VariableNames', {'Y', 'Treatment', 'Complexity'});
+    dataTable = table(Y, Treatment, 'VariableNames', {'Y','Treatment'});
     writetable(dataTable, [fileName, '.xlsx']);
     disp('Data saved to Excel.');
 end
 
-if length(unique(g2)) > 1
-    % Perform 2-way ANOVA
-    [p, tbl, stats] = anovan(Y, {g1, g2}, 'model', 'interaction', 'varnames', {'treatment', 'complexity'});
-else
-    % Perform 1-way ANOVA
-    [p, tbl, stats] = anovan(Y, {g1}, 'varnames', {'treatment'});
-end
+% ---------- 1-way ANOVA on Treatment ----------
+[p, tbl, stats] = anovan(Y, {Treatment}, 'varnames', {'treatment'});
 
-%% Description of normalizeData
+% ---------- Pairwise stats on pooled vectors ----------
+% t-test (Welch, unequal variances)
+[~, p_t, ~, S] = ttest2(YA, YB, 'Vartype','unequal');
+t_val = S.tstat;
+% Wilcoxon rank-sum (z + W); compute U and rank-biserial too
+[p_rs, ~, srs] = ranksum(YA, YB, 'method','approximate');  % robust & fast
+n1 = numel(YA); n2 = numel(YB);
+W  = srs.ranksum;
+U  = W - n1*(n1+1)/2;
+rb = 1 - (2*U)/(n1*n2);        % rank-biserial
+% Effect size (optional): Hedges' g
+g = hedges_g(YA, YB);
+
+pair = struct( ...
+    'colA', varNames{gA_idx}, 'colB', varNames{gB_idx}, ...
+    'n1', n1, 'n2', n2, ...
+    'median1', median(YA,'omitnan'), 'median2', median(YB,'omitnan'), ...
+    'ttest_t', t_val, 'ttest_p', p_t, 'hedges_g', g, ...
+    'ranksum_z', srs.zval, 'ranksum_p', p_rs, 'W', W, 'U', U, 'rank_biserial', rb);
+
+% ---------- Helpers ----------
 function normData = normalizeData(tempData, normType)
     switch normType
-        case 2  % Z-score
-            refCol = tempData(:, 1);
+        case 2  % Z-score using column 1 as reference
+            refCol  = tempData(:,1);
             refMean = mean(refCol, 'omitnan');
-            refStd = std(refCol, 'omitnan');
+            refStd  = std(refCol,  'omitnan');
             normData = (tempData - refMean) ./ refStd;
-        case 3  % Min-max
+        case 3  % Min-max over the matrix
             refMin = min(tempData(:));
             refMax = max(tempData(:));
-            normData = (tempData - refMin) ./ (refMax - refMin);
+            normData = (tempData - refMin) ./ max(refMax - refMin, eps);
         otherwise
             normData = tempData;
     end
+end
+
+function g = hedges_g(a, b)
+    a = a(:); b = b(:);
+    a = a(isfinite(a)); b = b(isfinite(b));
+    if numel(a)<2 || numel(b)<2, g = NaN; return; end
+    na = numel(a); nb = numel(b);
+    va = var(a,1);  vb = var(b,1);   % population var; pooled below w/ (n-1)
+    sp2 = ((na-1)*va + (nb-1)*vb) / (na + nb - 2);
+    if ~isfinite(sp2) || sp2<=0, g = NaN; return; end
+    d = (mean(a) - mean(b)) / sqrt(sp2);
+    J = 1 - (3 / (4*(na+nb) - 9));   % small-sample correction
+    g = J * d;
 end
 
 end
