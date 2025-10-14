@@ -1,112 +1,117 @@
-function curvature = computeTrajectoryCurvature(id, conn, plotFlag)
+function [curvature, distance] = computeTrajectoryCurvature(id, conn, time_limit, smooth, window, speed_thresh)
 % Author: Atanu Giri
 % Date: 05/19/2025
 %
 % computeTrajectoryCurvature - Computes mean curvature of a smoothed trajectory
+%
 % Input:
-%   id       - trial ID
-%   conn     - database connection object (optional)
-%   plotFlag - (optional) true to plot the smoothed trajectory and curvature
+%   id           - trial ID
+%   conn         - database connection object
+%   time_limit   - (optional) cap the trajectory at this time in seconds
+%   smooth       - (optional) true to smooth trajectory
+%   window       - (optional) smoothing window size in samples
+%   speed_thresh - (optional) threshold to invalidate curvature at low speeds
+%
 % Output:
-%   curvature - mean curvature over PC range (smoothed)
+%   curvature - mean curvature over the specified range
 
-    % Set up DB connection if not passed in
-    if nargin < 2 || isempty(conn)
-        conn = database('live_database', 'postgres', '1234');
-    end
-    if nargin < 3
-        plotFlag = false;
-    end
+    % Default parameter values if not provided
+    frame_rate = 10; % As specified for RECORD task
+    if nargin < 3, time_limit = inf; end
+    if nargin < 4, smooth = true; end
+    if nargin < 5, window = 5; end
+    if nargin < 6, speed_thresh = 1e-2; end
 
-    curvature = NaN;  % Default output in case of error
+    curvature = NaN;
 
-    % Query
+    % Database query
     query = sprintf( ...
-        "SELECT g.id, norm_t, norm_x, norm_y, l.playstarttrialtone " + ...
-        "FROM ghrelin_featuretable g " + ...
-        "JOIN live_table l ON g.id = l.id " + ...
-        "WHERE g.id = %d", ...
+        "SELECT id, norm_t, norm_x, norm_y, distance " + ...
+        "FROM ghrelin_featuretable " + ...
+        "WHERE id = %d", ...
         id);
 
-    subject_data = fetch(conn, query);
-
     try
-        % Parse playstarttrialtone
-        playTone = str2double(subject_data.playstarttrialtone);
-        if isnan(playTone)
-            playTone = 2;
+        subject_data = fetch(conn, query);
+
+        if isempty(subject_data)
+            warning('No data found for ID: %d', id);
+            return;
+        end
+        
+        % Parse norm_x, norm_y, norm_t from string arrays
+        norm_t_str = regexprep(string(subject_data.norm_t), '[{}]', '');
+        norm_x_str = regexprep(string(subject_data.norm_x), '[{}]', '');
+        norm_y_str = regexprep(string(subject_data.norm_y), '[{}]', '');
+        
+        t = str2double(split(norm_t_str, ','));
+        x = str2double(split(norm_x_str, ','));
+        y = str2double(split(norm_y_str, ','));
+
+        filter = t>= 2;
+        t = t(filter); x = x(filter); y = y(filter);
+
+        % Apply time_limit
+        if isfinite(time_limit)
+            t_filt = t <= time_limit;
+            x = x(t_filt);
+            y = y(t_filt);
+            
+            % n_keep = min(length(x), max(0, floor(time_limit * frame_rate)));
+            % % t = t(1:n_keep);
+            % x = x(1:n_keep);
+            % y = y(1:n_keep);
+        end
+        
+        if length(x) < 5
+            warning('Not enough data points for ID %d after time_limit.', id);
+            return;
         end
 
-        % Parse norm_t, norm_x, norm_y as arrays
-        for colName = ["norm_t", "norm_x", "norm_y"]
-            rawStr = string(subject_data.(colName));
-            cleanedStr = regexprep(rawStr, '[{}]', '');
-            splitStr = split(cleanedStr, ',');
-            subject_data.(colName){1} = str2double(splitStr);
+        % Optional smoothing
+        if smooth && window > 1
+            w = max(3, floor(window));
+            if mod(w, 2) == 0
+                w = w + 1;
+            end
+            x = smoothdata(x, 'movmean', w);
+            y = smoothdata(y, 'movmean', w);
         end
-
-        % Build table
-        data = table(subject_data.norm_t{1}, subject_data.norm_x{1}, ...
-                     subject_data.norm_y{1}, 'VariableNames', {'t', 'X', 'Y'});
-
-        % Present Cost window: playTone to 20s
-        pcFilter = data.t >= playTone & data.t <= 20;
-        t = data.t(pcFilter);
-        x = data.X(pcFilter);
-        y = data.Y(pcFilter);
-
-        % Smooth the coordinates
-        x = smoothdata(x, 'movmean', 5);
-        y = smoothdata(y, 'movmean', 5);
 
         % Compute derivatives
-        dx = gradient(x);
-        dy = gradient(y);
-        ddx = gradient(dx);
-        ddy = gradient(dy);
+        dt = 1.0 / frame_rate;
+        dx = gradient(x, dt);
+        dy = gradient(y, dt);
+        ddx = gradient(dx, dt);
+        ddy = gradient(dy, dt);
 
         % Speed
-        speed = sqrt(dx.^2 + dy.^2);
+        speed = hypot(dx, dy);
 
         % Curvature formula
-        curvatureVals = abs(dx .* ddy - dy .* ddx) ./ (dx.^2 + dy.^2).^(3/2);
+        numerator = abs(dx .* ddy - dy .* ddx);
+        denominator = (dx.^2 + dy.^2).^(3/2);
 
-        % Invalidate curvature where speed is too low
-        curvatureVals(speed < 1e-2) = NaN;
+        curvatureVals = numerator ./ denominator;
 
-        % Remove non-finite values (e.g., NaNs from zero-speed filtering)
-        curvatureVals(~isfinite(curvatureVals)) = [];
+        % Set curvature to NaN where speed is too low
+        curvatureVals(speed < speed_thresh) = 0;
 
+        % Handle cases where denominator is zero
+        curvatureVals(denominator == 0) = NaN;
+        
         % Final output: mean curvature
-        if ~isempty(curvatureVals)
-            curvature = mean(curvatureVals);
+        valid_curv = curvatureVals(isfinite(curvatureVals));
+        if ~isempty(valid_curv)
+            curvature = mean(valid_curv);
         else
             curvature = NaN;
         end
 
-        % Optional plot
-        if plotFlag
-            figure;
-            % Use curvature to color the trajectory line
-            cmap = jet(256);
-            normCurv = rescale(curvatureVals);  % Normalize curvature to [0, 1]
-            colorIdx = round(normCurv * 255) + 1;
-
-            hold on;
-            for i = 1:length(x)-1
-                c = cmap(colorIdx(i), :);
-                plot(x(i:i+1), y(i:i+1), '-', 'Color', c, 'LineWidth', 2);
-            end
-            colormap(jet);
-            cb = colorbar;
-            cb.Label.String = 'Curvature';
-            xlabel('X (normalized)');
-            ylabel('Y (normalized)');
-            title(sprintf('Trajectory Colored by Curvature (ID = %d)', id));
-            axis equal;
-        end
+        distance = subject_data.distance;
 
     catch ME
         fprintf("Error computing curvature for id = %d: %s\n", id, ME.message);
+        curvature = NaN;
     end
 end
