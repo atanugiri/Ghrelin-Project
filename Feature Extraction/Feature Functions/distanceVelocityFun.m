@@ -67,8 +67,7 @@ try
     dx = diff(X);
     dy = diff(Y);
     distance = sum(hypot(dx, dy));
-    velocity = distance/ ...
-        (t(end) - t(1));
+    velocity = (distance*60)/ (t(end) - t(1));
 
 catch ME
     warning("Error processing ID %d: %s", id, ME.message);
