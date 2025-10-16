@@ -55,23 +55,12 @@ function varargout = masterPsychometricBarPlot(feature, animalList, ...
     figname, semMethod, concentrationSubset, distanceRange, varargin)
 
 % Set defaults
-if nargin < 2 || isempty(animalList)
-    animalList = {};
-end
-if nargin < 3 || isempty(figname)
-    figname = 'Psych_bar_plot';
-end
+if nargin < 2 || isempty(animalList), animalList = {}; end
+if nargin < 3 || isempty(figname), figname = 'Psych_bar_plot'; end
 figname = sprintf('%s_bar', figname);
-
-if nargin < 4 || isempty(semMethod)
-    semMethod = 'session';
-end
-if nargin < 5 || isempty(concentrationSubset)
-    concentrationSubset = 1:4;
-end
-if nargin < 6 || isempty(distanceRange)
-    distanceRange = [-Inf, Inf];
-end
+if nargin < 4 || isempty(semMethod), semMethod = 'session'; end
+if nargin < 5 || isempty(concentrationSubset), concentrationSubset = 1:4; end
+if nargin < 6 || isempty(distanceRange), distanceRange = [-Inf, Inf]; end
 
 % Call master function
 featureForEach = masterPsychometricFunctionPlot( ...
@@ -116,14 +105,12 @@ end
 
 % Plotting
 x = 1:numGroups;
-barWidth = 0.5;
 Colors = lines(numGroups);
 
 figure; hold on;
 for i = 1:numGroups
-    bar(x(i), avFeature(i), barWidth, ...
-        'FaceColor', Colors(i,:), 'EdgeColor', 'k', ...
-        'DisplayName', groupLabels{i});
+    bar(x(i), avFeature(i), 'FaceColor', Colors(i,:), ...
+        'EdgeColor', 'k', 'DisplayName', groupLabels{i});
     errorbar(x(i), avFeature(i), stdErr(i), ...
         'k', 'LineStyle', 'none', 'LineWidth', 1.5, 'HandleVisibility', 'off');
 end
