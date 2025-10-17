@@ -197,3 +197,12 @@ T = table(sal_curv_filt_d_0_75, ghr_curv_filt_d_0_75, ...
 
 % Write to Excel
 writetable(T, 'curvature_data.xlsx');
+
+% 3-way ANOVA for 2xOPRM1 Rats
+longTbl = buildLongTable3way(3, true, 'White2xComplexTask', 'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv');
+longTbl = readtable('White2xComplexTask.xlsx');
+[p_all, tbl_all, stats_all] = anovan(longTbl.Y, ...
+{longTbl.Group, longTbl.Dreadds, longTbl.Task}, ...
+'model','full', 'varnames', {'Group','Dreadds','Task'}, 'display','on');
+M_GxD = multcompare(stats_all, 'Dimension', [1 2], 'Display','off');
+M_DxT = multcompare(stats_all, 'Dimension', [2 3], 'Display','off');
