@@ -199,8 +199,8 @@ T = table(sal_curv_filt_d_0_75, ghr_curv_filt_d_0_75, ...
 writetable(T, 'curvature_data.xlsx');
 
 % 3-way ANOVA for 2xOPRM1 Rats [10/17/2025]
-longTbl = buildLongTable3way(3, true, 'White2xComplexTask3WayANOVA', 'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv');
-longTbl = readtable('White2xComplexTask3WayANOVA.xlsx');
+longTbl = buildLongTable3way(3, true, 'White2xComplexTask3WayANOVA', ...
+    'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv');
 [p_all, tbl_all, stats_all] = anovan(longTbl.Y, ...
 {longTbl.Group, longTbl.Dreadds, longTbl.Task}, ...
 'model','full', 'varnames', {'Group','Dreadds','Task'}, 'display','on');
@@ -209,15 +209,14 @@ M_DxT = multcompare(stats_all, 'Dimension', [2 3], 'Display','off');
 
 % 1-way ANOVA for 2xOPRM1 Rats [10/17/2025]
 longTbl = buildLongTable1way(3, false, '', 'Data/2xOPRM1/FA_Controls.csv', ...
-    'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv');
-longTbl = buildLongTable1way(3, false, '', ...
-    'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv');
+    'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv'); % complex task
+longTbl = buildLongTable1way(3, false, '', 'Data/2xOPRM1/FL_Controls.csv', ...
+    'Data/2xOPRM1/TL_Controls.csv'); % simple task
 
 [p, tbl, stats] = anova1(longTbl.Y, longTbl.Condition, 'off');
 mc = multcompare(stats, 'Display','on');    % Tukey post-hoc
 
-
-
+% Plot 1-way ANOVA
 conds = categories(longTbl.Condition);
 nCond = numel(conds);
 
