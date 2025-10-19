@@ -139,7 +139,7 @@ if n_pairs >= 2
     dz = mean(diffs, 'omitnan') / std(diffs, 'omitnan');
 
     % Wilcoxon signed-rank (paired)
-    [p_wsr, ~, sgn] = signrank(pairA_all, pairB_all, 'method','approximate');
+    [p_wsr, ~, sgn] = signrank(pairA_all, pairB_all, 'method','exact');
     Wsr = sgn.signedrank;
     zsr = sgn.zval;
 
