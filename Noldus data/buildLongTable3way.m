@@ -77,7 +77,7 @@ end
 function v = toNumericCol(x)
 if istable(x), x = x{:,:}; end
 if iscell(x)
-    try, x = cellfun(@str2double, x);
+    try x = cellfun(@str2double, x);
     catch, x = string(x);
     end
 end
