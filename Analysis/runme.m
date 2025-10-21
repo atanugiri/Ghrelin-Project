@@ -209,9 +209,9 @@ M_DxT = multcompare(stats_all, 'Dimension', [2 3], 'Display','off');
 
 % 1-way ANOVA for 2xOPRM1 Rats [10/17/2025]
 longTbl = buildLongTable1way(3, false, '', 'Data/2xOPRM1/FA_Controls.csv', ...
-    'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv'); % complex task
+    'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv'); % simple task
 longTbl = buildLongTable1way(3, false, '', 'Data/2xOPRM1/FL_Controls.csv', ...
-    'Data/2xOPRM1/TL_Controls.csv'); % simple task
+    'Data/2xOPRM1/TL_Controls.csv'); % complex task
 
 [p, tbl, stats] = anova1(longTbl.Y, longTbl.Condition, 'off');
 mc = multcompare(stats, 'Display','on');    % Tukey post-hoc
