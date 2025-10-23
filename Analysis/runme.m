@@ -199,44 +199,19 @@ T = table(sal_curv_filt_d_0_75, ghr_curv_filt_d_0_75, ...
 writetable(T, 'curvature_data.xlsx');
 
 % 3-way ANOVA for 2xOPRM1 Rats [10/17/2025]
-longTbl = buildLongTable3way(3, true, 'White2xComplexTask3WayANOVA', ...
-    'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv');
-[p_all, tbl_all, stats_all] = anovan(longTbl.Y, ...
-{longTbl.Group, longTbl.Dreadds, longTbl.Task}, ...
-'model','full', 'varnames', {'Group','Dreadds','Task'}, 'display','on');
-M_GxD = multcompare(stats_all, 'Dimension', [1 2], 'Display','off');
-M_DxT = multcompare(stats_all, 'Dimension', [2 3], 'Display','off');
-
-% 1-way ANOVA for 2xOPRM1 Rats [10/17/2025]
-longTbl = buildLongTable1way(3, false, '', 'Data/2xOPRM1/FA_Controls.csv', ...
+longTbl = buildLongTable3way(3, false, '', 'Data/2xOPRM1/FA_Controls.csv', ...
     'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv'); % simple task
-longTbl = buildLongTable1way(3, false, '', 'Data/2xOPRM1/FL_Controls.csv', ...
-    'Data/2xOPRM1/TL_Controls.csv'); % complex task
 
-[p, tbl, stats] = anova1(longTbl.Y, longTbl.Condition, 'off');
-mc = multcompare(stats, 'Display','on');    % Tukey post-hoc
+longTbl = buildLongTable3way(3, false, '', ...
+    'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv'); % complex task
 
-% Plot 1-way ANOVA
-conds = categories(longTbl.Condition);
-nCond = numel(conds);
+[p, tbl, stats] = anovan(longTbl.Y, {longTbl.Group, longTbl.Dreadds, longTbl.Task}, ...
+    'model','interaction', 'varnames', {'Group','Dreadds','Task'});
 
-means = zeros(1, nCond);
-sems  = zeros(1, nCond);
-figure; hold on;
+[c, m, h, gnames] = multcompare(stats, "Dimension", [1 2 3]);
 
-for i = 1:nCond
-    y = longTbl.Y(longTbl.Condition == conds{i});
-    means(i) = mean(y, 'omitnan');
-    sems(i)  = std(y, 'omitnan') / sqrt(numel(y));
-    bar(i, means(i));
-    errorbar(i, means(i), sems(i), 'k.', 'LineWidth', 1);
-    jitterX = i + 0.1 * (rand(size(y)) - 0.5);
-    scatter(jitterX, y, 20, 'k', 'filled');
-end
+% 2-way ANOVA for 2xOPRM1 Rats [10/17/2025]
+[p, tbl, stats] = anovan(longTbl.Y,{longTbl.Group, longTbl.Dreadds}, ...
+    'model','interaction', 'varnames',{'Group','Dreadds'});
 
-hold off;
-
-
-
-
-
+[c, m, h, gnames] = multcompare(stats, 'Dimension', [1 2]);
