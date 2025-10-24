@@ -65,14 +65,14 @@ title(sprintf('%s (%s)', titleStr, subTitleStr{normType}), 'Interpreter', 'none'
 hold off;
 
 % Set ylim (optional)
-switch normType
-    case 1
-        ylim([0, 120]);
-    case 2
-        ylim([-2, 1.5]);
-    case 3
-        ylim([0, 0.8]);
-end
+% switch normType
+%     case 1
+%         ylim([0, 120]);
+%     case 2
+%         ylim([-2, 1.5]);
+%     case 3
+%         ylim([0, 0.8]);
+% end
 
 % Save figure
 savefig(gcf, sprintf('%s (%s).fig', titleStr, subTitleStr{normType}));
