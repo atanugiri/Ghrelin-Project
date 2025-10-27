@@ -210,8 +210,15 @@ longTbl = buildLongTable3way(3, false, '', ...
 
 [c, m, h, gnames] = multcompare(stats, "Dimension", [1 2 3]);
 
+% Non-parametric tests
+ix = string(longTbl.Task)=="Task1" & string(longTbl.Dreadds)=="WT";
+x  = longTbl.Y(ix & longTbl.Group=="Saline");
+y  = longTbl.Y(ix & longTbl.Group=="Ghrelin");
+wilcoxon_rs_results(x, y);
+
 % 2-way ANOVA for 2xOPRM1 Rats [10/17/2025]
 [p, tbl, stats] = anovan(longTbl.Y,{longTbl.Group, longTbl.Dreadds}, ...
     'model','interaction', 'varnames',{'Group','Dreadds'});
 
 [c, m, h, gnames] = multcompare(stats, 'Dimension', [1 2]);
+
