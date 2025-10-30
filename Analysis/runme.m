@@ -198,7 +198,7 @@ T = table(sal_curv_filt_d_0_75, ghr_curv_filt_d_0_75, ...
 % Write to Excel
 writetable(T, 'curvature_data.xlsx');
 
-% 3-way ANOVA for 2xOPRM1 Rats [10/17/2025]
+% 2-way ANOVA for 2xOPRM1 Rats [10/17/2025]
 longTbl = buildLongTable3way(3, false, '', 'Data/2xOPRM1/FA_Controls.csv', ...
     'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv'); % simple task
 
@@ -222,41 +222,20 @@ wilcoxon_rs_results(x, y);
 
 [c, m, h, gnames] = multcompare(stats, 'Dimension', [1 2]);
 
-% t-test summary: 2xOPRM1 Rats simple tasks [10/29/2025]
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FA_Controls.csv');
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TA_Controls.csv');
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/LA_Controls.csv');
-
-dreadds = ["WT", "Inhibitory", "Excitatory"];
-treatment = ["Saline", "Ghrelin"];
-
-for d = 1:numel(dreadds)
-    ix = string(longTbl.Dreadds)==dreadds(d) & string(longTbl.Group)==treatment(1);
-    iy = string(longTbl.Dreadds)==dreadds(d) & string(longTbl.Group)==treatment(2);
-    
-    x  = longTbl.Y(ix);
-    y  = longTbl.Y(iy);
-    [~, p, ~, stats] = ttest2(x, y, 'Vartype', 'unequal');
-
-    fprintf("%s-%s vs %s-%s: t(%0.2f) = %.2f, p = %.4f\n", ...
-        dreadds(d), treatment(1), dreadds(d), treatment(2), ...
-        stats.df, stats.tstat, p);
-end
-
 
 % t-test summary: 2xOPRM1 Rats simple and complex tasks [10/29/2025]
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FA_Controls.csv');
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TA_Controls.csv');
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/LA_Controls.csv');
-
-longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FL_Controls.csv');
+% longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FA_Controls.csv');
+% longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TA_Controls.csv');
+% longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/LA_Controls.csv');
+% 
+% longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FL_Controls.csv');
 longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TL_Controls.csv');
 
-dreadds1 = [repmat("WT", 1, 5), "Inhibitory"];
-dreadds2 = ["WT", "Inhibitory", "Inhibitory", "Excitatory", "Excitatory", "Excitatory"];
+dreadds1 = [repmat("WT", 1, 5)];
+dreadds2 = ["WT", "Inhibitory", "Inhibitory", "Excitatory", "Excitatory"];
 
-treatment1 = ["Saline", "Saline", "Ghrelin", "Saline", "Ghrelin", "Ghrelin"];
-treatment2 = [repmat("Ghrelin", 1, 3), repmat("Saline", 1, 3),];
+treatment1 = ["Saline", "Saline", "Ghrelin", "Saline", "Ghrelin"];
+treatment2 = [repmat("Ghrelin", 1, 3), repmat("Saline", 1, 2),];
 
 for d = 1:numel(dreadds1)
     ix = string(longTbl.Dreadds)==dreadds1(d) & string(longTbl.Group)==treatment1(d);
@@ -266,8 +245,8 @@ for d = 1:numel(dreadds1)
     y  = longTbl.Y(iy);
     [~, p, ~, stats] = ttest2(x, y, 'Vartype', 'unequal');
 
-    fprintf("%s-%s vs %s-%s: t(%0.2f) = %.2f, p = %.4f\n", ...
-        dreadds1(d), treatment1(1), dreadds2(d), treatment2(2), ...
+    fprintf("%s-%s vs %s-%s: t(%0.2f) = %.2f, p = %.3f\n", ...
+        dreadds1(d), treatment1(d), dreadds2(d), treatment2(d), ...
         stats.df, stats.tstat, p);
 end
 
