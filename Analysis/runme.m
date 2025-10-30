@@ -222,3 +222,63 @@ wilcoxon_rs_results(x, y);
 
 [c, m, h, gnames] = multcompare(stats, 'Dimension', [1 2]);
 
+% t-test summary: 2xOPRM1 Rats simple tasks [10/29/2025]
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FA_Controls.csv');
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TA_Controls.csv');
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/LA_Controls.csv');
+
+dreadds = ["WT", "Inhibitory", "Excitatory"];
+treatment = ["Saline", "Ghrelin"];
+
+for d = 1:numel(dreadds)
+    ix = string(longTbl.Dreadds)==dreadds(d) & string(longTbl.Group)==treatment(1);
+    iy = string(longTbl.Dreadds)==dreadds(d) & string(longTbl.Group)==treatment(2);
+    
+    x  = longTbl.Y(ix);
+    y  = longTbl.Y(iy);
+    [~, p, ~, stats] = ttest2(x, y, 'Vartype', 'unequal');
+
+    fprintf("%s-%s vs %s-%s: t(%0.2f) = %.2f, p = %.4f\n", ...
+        dreadds(d), treatment(1), dreadds(d), treatment(2), ...
+        stats.df, stats.tstat, p);
+end
+
+
+% t-test summary: 2xOPRM1 Rats simple and complex tasks [10/29/2025]
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FA_Controls.csv');
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TA_Controls.csv');
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/LA_Controls.csv');
+
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/FL_Controls.csv');
+longTbl = buildLongTable3way(1, false, '', 'Data/2xOPRM1/TL_Controls.csv');
+
+dreadds1 = [repmat("WT", 1, 5), "Inhibitory"];
+dreadds2 = ["WT", "Inhibitory", "Inhibitory", "Excitatory", "Excitatory", "Excitatory"];
+
+treatment1 = ["Saline", "Saline", "Ghrelin", "Saline", "Ghrelin", "Ghrelin"];
+treatment2 = [repmat("Ghrelin", 1, 3), repmat("Saline", 1, 3),];
+
+for d = 1:numel(dreadds1)
+    ix = string(longTbl.Dreadds)==dreadds1(d) & string(longTbl.Group)==treatment1(d);
+    iy = string(longTbl.Dreadds)==dreadds2(d) & string(longTbl.Group)==treatment2(d);
+    
+    x  = longTbl.Y(ix);
+    y  = longTbl.Y(iy);
+    [~, p, ~, stats] = ttest2(x, y, 'Vartype', 'unequal');
+
+    fprintf("%s-%s vs %s-%s: t(%0.2f) = %.2f, p = %.4f\n", ...
+        dreadds1(d), treatment1(1), dreadds2(d), treatment2(2), ...
+        stats.df, stats.tstat, p);
+end
+
+% 2-way ANOVA: 10xOPRM1 Rats
+longTbl = buildLongTable2way(3, false, '', 'Data/10xOPRM1/Food Alone 10x.csv', ...
+    'Data/10xOPRM1/Toy Alone 10x.csv', 'Data/10xOPRM1/Light Alone 10x.csv'); % simple task
+
+longTbl = buildLongTable2way(3, false, '', ...
+    'Data/10xOPRM1/Food Light 10x.csv', 'Data/10xOPRM1/Toy Light 10x.csv'); % complex task
+
+[p, tbl, stats] = anovan(longTbl.Y, {longTbl.Group, longTbl.Task}, ...
+    'model','interaction', 'varnames', {'Group','Task'});
+
+[c, m, h, gnames] = multcompare(stats, "Dimension", [1 2]);
