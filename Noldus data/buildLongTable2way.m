@@ -1,4 +1,4 @@
-function longTbl = buildLongTable2way_old(normType, saveToExcel, fileName, varargin)
+function longTbl = buildLongTable2way(normType, saveToExcel, fileName, varargin)
 % buildLongTable2way
 % Returns a long-format table for 2-way ANOVA across tasks:
 %   Variables: Y, Group={Saline,Ghrelin}, Task={file1,file2,...}
@@ -28,10 +28,9 @@ assert(nargin >= 4, 'Provide at least one file after (normType, saveToExcel, fil
 
 grpLabels = {'Saline','Ghrelin'};
 
-% --- Step 1: Read all files and collect their data ---
-allSaline = {};
-allGhrelin = {};
-taskLabels = {};
+Y = []; 
+G = {}; 
+T = {};
 
 for fi = 1:numel(varargin)
     thisFile = varargin{fi};
@@ -47,66 +46,25 @@ for fi = 1:numel(varargin)
         X(:,c) = toNumericCol(raw(:,c));
     end
 
-    % Store columns separately
-    allSaline{fi} = X(:,1);
-    allGhrelin{fi} = X(:,2);
-    
-    % Task label = file base name (without extension)
-    [~, baseName, ~] = fileparts(string(thisFile));
-    taskLabels{fi} = string(baseName);
-end
+    % --- Per-file normalization, then pool ---
+    Xn = normalizeTask(X, normType);
 
-% --- Step 2: Combine columns horizontally (mean across files) ---
-% All files must have same number of rows
-numRows = numel(allSaline{1});
-for fi = 2:numel(allSaline)
-    if numel(allSaline{fi}) ~= numRows
-        error('All input files must have the same number of rows for column-wise combining.');
+    % Drop NaN/Inf row-wise per column, then append with factors
+    for c = 1:2
+        y = Xn(:,c);
+        y = y(isfinite(y));
+        if isempty(y), continue; end
+
+        gLevel = c; % 1=Saline, 2=Ghrelin
+
+        % Task label = file base name (without extension)
+        [~, baseName, ~] = fileparts(string(thisFile));
+        taskLabel = string(baseName);
+
+        Y = [Y; y]; %#ok<AGROW>
+        G = [G; repmat(grpLabels(gLevel), numel(y), 1)]; %#ok<AGROW>
+        T = [T; repmat(taskLabel,          numel(y), 1)]; %#ok<AGROW>
     end
-end
-
-% Combine: mean across files for each data point
-salineData = zeros(numRows, 1);
-ghrelinData = zeros(numRows, 1);
-
-for row = 1:numRows
-    salineVals = zeros(1, numel(allSaline));
-    ghrelinVals = zeros(1, numel(allGhrelin));
-    
-    for fi = 1:numel(allSaline)
-        salineVals(fi) = allSaline{fi}(row);
-        ghrelinVals(fi) = allGhrelin{fi}(row);
-    end
-    
-    % Mean across files (ignoring NaN)
-    salineData(row) = mean(salineVals, 'omitnan');
-    ghrelinData(row) = mean(ghrelinVals, 'omitnan');
-end
-
-% Combine into single matrix for normalization
-X = [salineData, ghrelinData];
-
-% --- Step 3: Normalize the combined data ---
-Xn = normalizeTask(X, normType);
-
-% --- Step 4: Build long table ---
-Y = []; 
-G = {}; 
-T = {};
-
-for c = 1:2
-    y = Xn(:,c);
-    y = y(isfinite(y));
-    if isempty(y), continue; end
-
-    gLevel = c; % 1=Saline, 2=Ghrelin
-    
-    % Use combined label for task (since data is averaged across files)
-    taskLabel = strjoin(taskLabels, '+');
-
-    Y = [Y; y]; %#ok<AGROW>
-    G = [G; repmat(grpLabels(gLevel), numel(y), 1)]; %#ok<AGROW>
-    T = [T; repmat(taskLabel,          numel(y), 1)]; %#ok<AGROW>
 end
 
 Group = categorical(G, grpLabels);           % fixed order

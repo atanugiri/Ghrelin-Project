@@ -1,7 +1,7 @@
 % 2-way ANOVA: Long Evans Rats [11/02/2025] [Fig 1]
 longTbl = buildLongTable2way(3, false, '', 'Data/LongEvans/Food Center Freq_K.csv', ...
-'Data/LongEvans/Light Alone Freq_K.csv', 'Data/LongEvans/Toy Alone Freq_K.csv'); % simple task
-barPlotWithPoints(longTbl, 'Dreadds', 'Group', 'Normalized Frequency', 'Complex task');
+'Data/LongEvans/Toy Alone Freq_K.csv', 'Data/LongEvans/Light Alone Freq_K.csv'); % simple task
+barPlotWithPoints(longTbl, 'Task', 'Group', 'Normalized Frequency', 'Simple task');
 [p, tbl, stats] = anovan(longTbl.Y, {longTbl.Group, longTbl.Task}, ...
     'model','interaction', 'varnames', {'Group','Task'});
 
