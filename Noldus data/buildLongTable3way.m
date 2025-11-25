@@ -21,13 +21,7 @@ grpLabels = {'Saline','Ghrelin'};                % (Ghrelin = your 2× IBU)
 dreLabels = {'WT','Inhibitory','Excitatory'};
 col2fact  = [1 1; 2 1; 1 2; 2 2; 1 3; 2 3];       % [Group Dreadds] per column
 
-% --- Step 1: Read all files and collect their data ---
-allData = cell(6, 1);  % 6 columns: Saline-WT, Ghrelin-WT, Saline-Inhib, Ghrelin-Inhib, Saline-Excit, Ghrelin-Excit
-for c = 1:6
-    allData{c} = {};
-end
-taskLabels = {};
-
+Y = []; G = {}; D = {}; T = {};
 for fi = 1:numel(varargin)
     Ti  = readtable(varargin{fi}, 'VariableNamingRule','preserve');
     raw = Ti{:,:};
@@ -36,60 +30,19 @@ for fi = 1:numel(varargin)
     end
     X = zeros(height(Ti), 6);
     for c = 1:6, X(:,c) = toNumericCol(raw(:,c)); end
-    
-    % Store each column's data
+    Xn = normalizeTask(X, normType);  % per-task normalization
+
     for c = 1:6
-        allData{c}{fi} = X(:,c);
+        y = Xn(:,c);
+        y = y(isfinite(y));           % drop NaNs/Inf (your preference)
+        if isempty(y), continue; end
+        gLevel = col2fact(c,1);
+        dLevel = col2fact(c,2);
+        Y = [Y; y]; %#ok<AGROW>
+        G = [G; repmat(grpLabels(gLevel), numel(y), 1)]; %#ok<AGROW>
+        D = [D; repmat(dreLabels(dLevel), numel(y), 1)]; %#ok<AGROW>
+        T = [T; repmat({sprintf('Task%d', fi)}, numel(y), 1)]; %#ok<AGROW>
     end
-    
-    % Task label = file base name
-    [~, baseName, ~] = fileparts(string(varargin{fi}));
-    taskLabels{fi} = string(baseName);
-end
-
-% --- Step 2: Combine columns horizontally (mean across files) ---
-% All files must have same number of rows
-numRows = numel(allData{1}{1});
-for c = 1:6
-    for fi = 2:numel(allData{c})
-        if numel(allData{c}{fi}) ~= numRows
-            error('All input files must have the same number of rows for column-wise combining.');
-        end
-    end
-end
-
-% Combine: mean across files for each data point
-combinedData = zeros(numRows, 6);
-for row = 1:numRows
-    for c = 1:6
-        vals = zeros(1, numel(varargin));
-        for fi = 1:numel(varargin)
-            vals(fi) = allData{c}{fi}(row);
-        end
-        % Mean across files (ignoring NaN)
-        combinedData(row, c) = mean(vals, 'omitnan');
-    end
-end
-
-% --- Step 3: Normalize the combined data ---
-Xn = normalizeTask(combinedData, normType);
-
-% --- Step 4: Build long table ---
-Y = []; G = {}; D = {}; T = {};
-for c = 1:6
-    y = Xn(:,c);
-    y = y(isfinite(y));           % drop NaNs/Inf
-    if isempty(y), continue; end
-    gLevel = col2fact(c,1);
-    dLevel = col2fact(c,2);
-    
-    % Use combined label for task
-    taskLabel = strjoin(string(taskLabels), '+');
-    
-    Y = [Y; y]; %#ok<AGROW>
-    G = [G; repmat(grpLabels(gLevel), numel(y), 1)]; %#ok<AGROW>
-    D = [D; repmat(dreLabels(dLevel), numel(y), 1)]; %#ok<AGROW>
-    T = [T; repmat({char(taskLabel)}, numel(y), 1)]; %#ok<AGROW>
 end
 
 Group   = categorical(G, grpLabels);                    % fixed order
