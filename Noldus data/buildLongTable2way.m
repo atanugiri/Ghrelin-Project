@@ -1,4 +1,4 @@
-function longTbl = buildLongTable2way(normType, saveToExcel, fileName, varargin)
+function longTbl = buildLongTable2way_old(normType, saveToExcel, fileName, varargin)
 % buildLongTable2way
 % Returns a long-format table for 2-way ANOVA across tasks:
 %   Variables: Y, Group={Saline,Ghrelin}, Task={file1,file2,...}
@@ -102,7 +102,7 @@ for c = 1:2
     gLevel = c; % 1=Saline, 2=Ghrelin
     
     % Use combined label for task (since data is averaged across files)
-    taskLabel = strjoin(string(taskLabels), '+');
+    taskLabel = strjoin(taskLabels, '+');
 
     Y = [Y; y]; %#ok<AGROW>
     G = [G; repmat(grpLabels(gLevel), numel(y), 1)]; %#ok<AGROW>
