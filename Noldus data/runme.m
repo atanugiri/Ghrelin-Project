@@ -85,3 +85,25 @@ longTbl = buildLongTable2way(3, false, '', ...
 
 [c, m, h, gnames] = multcompare(stats, "Dimension", [1 2]);
 
+% 2-way ANOVA for 2xOPRM1 Rats [11/05/2025]
+longTbl = buildLongTable3way(3, false, '', 'Data/2xOPRM1/FA_Controls.csv', ...
+    'Data/2xOPRM1/LA_Controls.csv', 'Data/2xOPRM1/TA_Controls.csv'); % simple task
+barPlotWithPoints(longTbl, 'Dreadds', 'Group', 'Normalized Frequency', 'Simple task');
+[p, tbl, stats] = anovan(longTbl.Y, {longTbl.Group, longTbl.Dreadds}, ...
+    'model','interaction', 'varnames', {'Group','Dreadds'});
+[c, m, h, gnames] = multcompare(stats, "Dimension", [1 2]);
+
+longTbl = buildLongTable3way(3, false, '', ...
+    'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv'); % complex task
+barPlotWithPoints(longTbl, 'Dreadds', 'Group', 'Normalized Frequency', 'Complex task');
+[p, tbl, stats] = anovan(longTbl.Y, {longTbl.Group, longTbl.Dreadds}, ...
+    'model','interaction', 'varnames', {'Group','Dreadds'});
+[c, m, h, gnames] = multcompare(stats, "Dimension", [1 2]); 
+
+% Old 
+longTbl = buildLongTable3way_old(3, false, '', ...
+    'Data/2xOPRM1/FL_Controls.csv', 'Data/2xOPRM1/TL_Controls.csv'); % complex task
+barPlotWithPoints(longTbl, 'Dreadds', 'Group', 'Normalized Frequency', 'Complex task');
+[p, tbl, stats] = anovan(longTbl.Y, {longTbl.Group, longTbl.Dreadds}, ...
+    'model','interaction', 'varnames', {'Group','Dreadds'});
+[c, m, h, gnames] = multcompare(stats, "Dimension", [1 2]); 
