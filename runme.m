@@ -25,6 +25,7 @@ conn = postgresql(username, password, ...
 [T1, T2] = masterPsychometricBarPlot('approachavoid', [], 'approachavoid', 'trial', ...
     [], [], 'P2L1 Saline', 'P2L1 Ghrelin');
 [~, p, ~, stat] = ttest2(T1, T2);
+saveToExcel('approach_rate', T1, T2, {'Saline', 'Ghrelin'});
 
 % Saline
 sal_id = treatmentIDfun('P2L1 Saline', conn);
