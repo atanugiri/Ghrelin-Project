@@ -1,7 +1,4 @@
 %% Ghrelin_featuretable data analysis
-% 05/19/2025
-% conn = database('live_database','postgres','1234');
-
 % Add project root and all subfolders to the MATLAB path.
 thisFile = mfilename('fullpath');
 if isempty(thisFile)
