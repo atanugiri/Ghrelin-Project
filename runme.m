@@ -77,10 +77,6 @@ mazeMethods(2);
 [~, p, ~, stat] = ttest2(T1, T2);
 saveToExcel('time_in_nest', T1, T2, {'Saline', 'Ghrelin'});
 
-% vals = [T1(:); T2(:)];
-% groups = [repmat({'Saline'}, numel(T1), 1); 
-%           repmat({'Ghrelin'},  numel(T2), 1)];
-
 figure;
 x1 = ones(size(T1));   % group position 1
 x2 = 2*ones(size(T2)); % group position 2
