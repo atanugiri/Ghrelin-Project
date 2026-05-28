@@ -1,16 +1,45 @@
+# -----------------------------
+# MATLAB autosave and data artifacts
+# -----------------------------
 *.asv
 *.mat
-*.png
 *.fig
+
+# -----------------------------
+# Exported figures/documents
+# Keep generated outputs out of git history
+# -----------------------------
+*.png
 *.pdf
-*.xlsx
-*.csv
 *.ai
 *.eps
+
+# -----------------------------
+# Tabular exports
+# -----------------------------
+*.xlsx
+*.csv
+
+# -----------------------------
+# Python caches / notebook checkpoints
+# -----------------------------
 __pycache__/
 .ipynb_checkpoints/
+
+# -----------------------------
+# OS / editor files
+# -----------------------------
 .DS_Store
-Literature/ search\
-Analysis/.DS_Store
-Analysis/Fig\ files/
-Analysis/Clusters/Fig\ files/
+.vscode/
+
+# -----------------------------
+# Project-specific generated folders
+# -----------------------------
+Analysis/Fig files/
+Analysis/Clusters/Fig files/
+
+# -----------------------------
+# Project-specific local folders
+# -----------------------------
+Literature/search/
+Literature/\ search/
