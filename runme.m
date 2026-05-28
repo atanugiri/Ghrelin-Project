@@ -1,6 +1,26 @@
 %% Ghrelin_featuretable data analysis
 % 05/19/2025
-conn = database('live_database','postgres','1234');
+% conn = database('live_database','postgres','1234');
+
+% Add project root and all subfolders to the MATLAB path.
+thisFile = mfilename('fullpath');
+if isempty(thisFile)
+    projectRoot = pwd;
+else
+    projectRoot = fileparts(thisFile);
+end
+addpath(genpath(projectRoot));
+
+databaseName = 'live_database';
+username = 'atanugiri';
+password = '';
+host = 'localhost';
+port = 5432;
+
+conn = postgresql(username, password, ...
+    'Server', host, ...
+    'DatabaseName', databaseName, ...
+    'PortNumber', port);
 
 [T1, T2] = masterPsychometricBarPlot('approachavoid', [], 'approachavoid', 'trial', ...
     [], [], 'P2L1 Saline', 'P2L1 Ghrelin');

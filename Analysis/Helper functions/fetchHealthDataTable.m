@@ -74,7 +74,16 @@ end
 mergedTable.referencetime = string(datetime(mergedTable.referencetime, 'Format', 'MM/dd/yyyy'));
 mergedTable.subjectid = string(mergedTable.subjectid);
 mergedTable.trialcontrolsettings = string(mergedTable.trialcontrolsettings);
-mergedTable.feeder = str2double(mergedTable.feeder);
+
+% feeder can arrive as numeric, string, char, or cell depending on DB driver.
+% Convert in a type-safe way while preserving one value per table row.
+feederRaw = mergedTable.feeder;
+if isnumeric(feederRaw)
+    feederNum = double(feederRaw);
+else
+    feederNum = str2double(string(feederRaw));
+end
+mergedTable.feeder = feederNum(:);
 
 % Assign realFeederId
 patterns = ["Diagonal", "Grid", "Horizontal", "Radial"];

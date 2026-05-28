@@ -82,7 +82,16 @@ groupLabels = cell(1, numel(treatmentGroups));
 isCustomIDList = false(1, numel(treatmentGroups));
 
 for i = 1:numel(treatmentGroups)
-    conn = database('live_database','postgres','1234');
+    databaseName = 'live_database';
+    username = 'atanugiri';
+    password = '';
+    host = 'localhost';
+    port = 5432;
+
+    conn = postgresql(username, password, ...
+        'Server', host, ...
+        'DatabaseName', databaseName, ...
+        'PortNumber', port);
     inputGroup = treatmentGroups{i};
 
     if isnumeric(inputGroup)
@@ -111,7 +120,16 @@ end
 treatment_data = cell(1, numel(treatmentGroups));
 
 for i = 1:numel(treatment_data)
-    conn = database('live_database','postgres','1234');
+    databaseName = 'live_database';
+    username = 'atanugiri';
+    password = '';
+    host = 'localhost';
+    port = 5432;
+
+    conn = postgresql(username, password, ...
+        'Server', host, ...
+        'DatabaseName', databaseName, ...
+        'PortNumber', port);
     treatment_data{i} = fetchHealthDataTable(feature, treatmentIDs{i}, conn, distanceRange);
 
     % Clean sessions only if not custom ID list
